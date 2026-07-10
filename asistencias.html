@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asistencias | Montas Auto Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <script src="js/authHelpers.js"></script>
+  <script>
+    if (!localStorage.getItem('sesionActiva')) {
+      window.location.href = 'login.html';
+    }
+  </script>
+  
+ <style>
+    body {
+      background-color: #f8f9fa;
+    }
+
+    .form-label small {
+      font-size: 0.8em;
+      color: #666;
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+    }
+
+    img[alt="Logo"] {
+      filter: drop-shadow(0 0 5px #ffffffaa);
+    }
+  </style>
+  
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="bg-dark text-white py-3 px-4 mb-4">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <img src="assets/logo.png" alt="Logo" width="50" class="me-3" />
+        <div>
+          <h1 class="h5 mb-0">Montas Auto Academy</h1>
+          <small>Registro de Asistencias</small>
+        </div>
+      </div>
+      <div class="no-print">
+        <a href="panel.html" class="btn btn-outline-light btn-sm me-2">Inicio</a>
+    <a href="#" onclick="cerrarSesion()" class="btn btn-outline-danger btn-sm">Cerrar sesión</a>
+     
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Formulario -->
+    <section class="card shadow-sm mb-4 no-print">
+      <div class="card-header bg-primary text-white">
+        Registrar Asistencia
+      </div>
+      <div class="card-body">
+        <form id="formAsistencia" class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">Fecha</label>
+            <input type="date" class="form-control" id="fecha" required />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Hora</label>
+            <input type="time" class="form-control" id="hora" required />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Estado</label>
+            <select class="form-select" id="estado" required>
+              <option value="presente">Asistió</option>
+              <option value="ausente">Excusa</option>
+              <option value="ausente">No asistió</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Clase <small>(Número)</small></label>
+            <input type="number" class="form-control" id="claseNumero" readonly />
+          </div>
+          <div class="text-end mt-2">
+            <button type="submit" class="btn btn-success">Guardar Asistencia</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Historial -->
+    <section class="mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="mb-0">Historial de Asistencias</h5>
+        <button onclick="printHistorial()" class="btn btn-outline-primary btn-sm no-print">Imprimir</button>
+      </div>
+      <div class="table-responsive" id="historialTable">
+        <table class="table table-striped table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th># Clase</th>
+              <th>Fecha</th>
+              <th>Hora</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="tablaAsistencias">
+            <!-- Se llenará dinámicamente -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const idCliente = new URLSearchParams(window.location.search).get("id");
+  
+    async function cargarAsistencias() {
+      try {
+        const res = await fetch(`http://localhost:4000/api/asistencias/cliente/${idCliente}`, { headers: getAuthHeaders() });
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error('Error al obtener asistencias', res.status, errorText);
+          return;
+        }
+        const data = await res.json();
+        const tbody = document.getElementById("tablaAsistencias");
+        tbody.innerHTML = "";
+  
+        data.forEach((a, i) => {
+          const estadoLabel = a.estado === 'presente' ? 'Asistió' : 'No asistió';
+          const fila = document.createElement("tr");
+          fila.innerHTML = `
+            <td>${i + 1}</td>
+            <td>${new Date(a.fecha).toLocaleDateString("es-DO")}</td>
+            <td>${a.hora}</td>
+            <td>${estadoLabel}</td>
+          `;
+          tbody.appendChild(fila);
+        });
+  
+        // Establecer número de clase automáticamente
+        document.getElementById("claseNumero").value = data.length + 1;
+      } catch (error) {
+        console.error("Error al cargar asistencias:", error);
+      }
+    }
+  
+    document.getElementById("formAsistencia").addEventListener("submit", async function (e) {
+      e.preventDefault();
+  
+      const data = {
+        cliente_id: parseInt(idCliente),
+        fecha: document.getElementById("fecha").value,
+        hora: document.getElementById("hora").value,
+        estado: document.getElementById("estado").value,
+        numero: parseInt(document.getElementById("claseNumero").value)
+      };
+  
+      try {
+        const res = await fetch("http://localhost:4000/api/asistencias", {
+          method: "POST",
+          headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+  
+        const result = await res.json();
+  
+        if (res.ok) {
+          alert("Asistencia registrada exitosamente");
+          cargarAsistencias();
+          this.reset();
+        } else {
+          alert("Error al registrar: " + result.error);
+        }
+      } catch (error) {
+        alert("Error de conexión con el servidor");
+        console.error(error);
+      }
+    });
+  
+    function printHistorial() {
+      const historial = document.getElementById('historialTable').outerHTML;
+      const contenido =
+        '<!doctype html>' +
+        '<html>' +
+        '<head>' +
+        '<title>Historial de Asistencias</title>' +
+        '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />' +
+        '<style>body { padding: 20px; font-family: Arial, sans-serif; } .no-print { display: none !important; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #dee2e6; padding: 0.75rem; }</style>' +
+        '</head>' +
+        '<body>' +
+        '<h2>Historial de Asistencias</h2>' +
+        historial +
+        '<' + '/body></html>';
+
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.right = '0';
+      iframe.style.bottom = '0';
+      iframe.style.width = '0';
+      iframe.style.height = '0';
+      iframe.style.border = '0';
+      iframe.style.visibility = 'hidden';
+      document.body.appendChild(iframe);
+      iframe.srcdoc = contenido;
+      iframe.onload = function () {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+        setTimeout(() => document.body.removeChild(iframe), 1000);
+      };
+    }
+
+    if (!idCliente) {
+      alert("Cliente no definido.");
+      window.location.href = "panel.html";
+    } else {
+      cargarAsistencias();
+    }
+  </script>
+  <script>
+    function cerrarSesion() {
+      localStorage.removeItem('sesionActiva');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

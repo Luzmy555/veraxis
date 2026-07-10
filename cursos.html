@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cursos | Montas Auto Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+</head>
+<body>
+<script>
+  if (!localStorage.getItem('sesionActiva')) {
+    window.location.href = 'login.html';
+  }
+</script>
+
+<nav class="navbar navbar-dark bg-dark px-4 py-3">
+  <div class="d-flex align-items-center">
+    <img src="assets/logo.png" alt="Logo Montas Auto Academy" width="50" class="me-2" />
+    <div class="text-white">
+      <h1 class="h5 mb-0">Cursos</h1>
+      <small>Administra los cursos de Montas Auto Academy</small>
+    </div>
+  </div>
+  <div class="ms-auto">
+    <a href="panel.html" class="btn btn-outline-light btn-sm me-2">Inicio</a>
+    <button onclick="cerrarSesion()" class="btn btn-outline-danger btn-sm">Cerrar sesión</button>
+  </div>
+</nav>
+
+<main class="container my-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h5 mb-0">Cursos registrados</h2>
+    <button class="btn btn-primary" onclick="abrirFormularioCurso()">+ Nuevo curso</button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>Nombre</th>
+          <th>Duración (semanas)</th>
+          <th>Precio</th>
+          <th>Instructores</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaCursos">
+        <tr><td colspan="5">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<div class="modal fade" id="modalCurso" tabindex="-1" aria-labelledby="modalCursoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <form class="modal-content" id="formCurso">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title" id="modalCursoLabel">Nuevo curso</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Nombre del curso</label>
+            <input id="cursoNombre" class="form-control" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Precio</label>
+            <input id="cursoPrecio" type="number" step="0.01" class="form-control" required />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Duración (semanas)</label>
+            <input id="cursoDuracion" type="number" class="form-control" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Activo</label>
+            <select id="cursoActivo" class="form-select">
+              <option value="true">Sí</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Descripción</label>
+            <textarea id="cursoDescripcion" class="form-control" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Guardar curso</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/authHelpers.js"></script>
+<script>
+  let cursoEditId = null;
+  const modalCurso = new bootstrap.Modal(document.getElementById('modalCurso'));
+
+  async function cargarCursos() {
+    const tabla = document.getElementById('tablaCursos');
+    tabla.innerHTML = '<tr><td colspan="6">Cargando...</td></tr>';
+
+    try {
+      const res = await fetch('http://localhost:4000/api/cursos', {
+        headers: getAuthHeaders()
+      });
+      const cursos = await res.json();
+
+      if (!Array.isArray(cursos) || cursos.length === 0) {
+        tabla.innerHTML = '<tr><td colspan="6">No hay cursos registrados.</td></tr>';
+        return;
+      }
+
+      tabla.innerHTML = '';
+      for (const c of cursos) {
+        let instructoresText = 'Sin asignar';
+        try {
+          const resInstr = await fetch(`http://localhost:4000/api/cursos/${c.id}/instructores`, {
+            headers: getAuthHeaders()
+          });
+          const instructores = await resInstr.json();
+          if (instructores.length > 0) {
+            instructoresText = instructores.map(i => i.nombre).join(', ');
+          }
+        } catch (error) {
+          console.error('Error cargando instructores para curso', c.id, error);
+        }
+
+        tabla.innerHTML += `
+          <tr>
+            <td>${c.nombre}</td>
+            <td>${c.duracion_semanas || '-'} </td>
+            <td>RD$ ${parseFloat(c.precio || 0).toFixed(2)}</td>
+            <td><small>${instructoresText}</small></td>
+            <td>${c.activo ? 'Activo' : 'Inactivo'}</td>
+            <td>
+              <button class="btn btn-sm btn-warning me-1" onclick="editarCurso(${c.id})">Editar</button>
+              <button class="btn btn-sm btn-danger" onclick="eliminarCurso(${c.id})">Eliminar</button>
+            </td>
+          </tr>`;
+      }
+    } catch (error) {
+      console.error(error);
+      tabla.innerHTML = '<tr><td colspan="6">Error al cargar cursos.</td></tr>';
+    }
+  }
+
+  function abrirFormularioCurso() {
+    cursoEditId = null;
+    document.getElementById('modalCursoLabel').textContent = 'Nuevo curso';
+    document.getElementById('formCurso').reset();
+    document.getElementById('cursoActivo').value = 'true';
+    modalCurso.show();
+  }
+
+  async function editarCurso(id) {
+    try {
+      const res = await fetch(`http://localhost:4000/api/cursos/${id}`, {
+        headers: getAuthHeaders()
+      });
+      const curso = await res.json();
+      cursoEditId = id;
+      document.getElementById('modalCursoLabel').textContent = 'Editar curso';
+      document.getElementById('cursoNombre').value = curso.nombre || '';
+      document.getElementById('cursoPrecio').value = curso.precio || 0;
+      document.getElementById('cursoDuracion').value = curso.duracion_semanas || '';
+      document.getElementById('cursoActivo').value = curso.activo ? 'true' : 'false';
+      document.getElementById('cursoDescripcion').value = curso.descripcion || '';
+      modalCurso.show();
+    } catch (error) {
+      console.error(error);
+      alert('No se pudo cargar el curso para editar.');
+    }
+  }
+
+  async function eliminarCurso(id) {
+    if (!confirm('¿Deseas eliminar este curso?')) return;
+    try {
+      await fetch(`http://localhost:4000/api/cursos/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      cargarCursos();
+    } catch (error) {
+      console.error(error);
+      alert('No se pudo eliminar el curso.');
+    }
+  }
+
+  document.getElementById('formCurso').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const payload = {
+      nombre: document.getElementById('cursoNombre').value.trim(),
+      descripcion: document.getElementById('cursoDescripcion').value.trim(),
+      duracion_semanas: parseInt(document.getElementById('cursoDuracion').value, 10) || null,
+      precio: parseFloat(document.getElementById('cursoPrecio').value) || 0,
+      activo: document.getElementById('cursoActivo').value === 'true'
+    };
+
+    try {
+      const url = cursoEditId ? `http://localhost:4000/api/cursos/${cursoEditId}` : 'http://localhost:4000/api/cursos';
+      const method = cursoEditId ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Error guardando curso', res.status, errorText);
+        throw new Error('Error guardando curso');
+      }
+      modalCurso.hide();
+      cargarCursos();
+    } catch (error) {
+      console.error(error);
+      alert('No se pudo guardar el curso.');
+    }
+  });
+
+  function cerrarSesion() {
+    logout();
+  }
+
+  window.onload = function() {
+    if (requireAdminPage()) {
+      cargarCursos();
+    }
+  };
+</script>
+</body>
+</html>

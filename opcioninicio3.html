@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Montas Auto Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
+  <style>
+    body, html {
+      height: 100%; margin: 0; font-family: 'Segoe UI', sans-serif; overflow-x: hidden;
+    }
+    header {
+      position: fixed; top: 0; width: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+      z-index: 1000; padding: 10px 30px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .logo-img { width: 50px; filter: drop-shadow(0 0 5px white); }
+    .nav-links a { color: white; margin: 0 10px; text-decoration: none; font-weight: 500; }
+    .hero { position: relative; height: 100vh; display: flex; justify-content: center; align-items: center;
+      color: white; text-align: center;
+    }
+    .hero video {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1;
+    }
+    .hero-content { z-index: 1; }
+    section { padding: 60px 20px; }
+    footer { background: #222; color: white; text-align: center; padding: 20px; }
+    
+    /* Estilos Swiper Galería */
+    .swiper {
+      width: 100%; padding-top: 20px; padding-bottom: 50px;
+    }
+    .swiper-slide {
+      background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      width: 250px; height: 250px; display: flex; justify-content: center; align-items: center;
+    }
+    .swiper-slide img, .swiper-slide video {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="d-flex align-items-center">
+    <img src="assets/logo.png" alt="Logo" class="logo-img me-2">
+    <span class="text-white fw-bold">Montas Auto Academy</span>
+  </div>
+  <div class="nav-links">
+    <a href="#nosotros">Nosotros</a>
+    <a href="#galeria">Galería</a>
+    <a href="#contacto">Contacto</a>
+    <a href="login.html" class="btn btn-outline-light btn-sm">Iniciar Sesión</a>
+  </div>
+</header>
+
+<section class="hero">
+  <video src="assets/video/driving-night.mp4" autoplay loop muted></video>
+  <div class="hero-content">
+    <h1 class="display-4 fw-bold">Conduciendo hacia tu futuro</h1>
+    <p class="lead">Aprende a manejar con seguridad, confianza y excelencia.</p>
+  </div>
+</section>
+
+<section id="nosotros" class="container">
+  <div class="row align-items-center">
+    <div class="col-md-6">
+      <h2 class="fw-bold">Sobre Nosotros</h2>
+      <p>En Montas Auto Academy, formamos conductores responsables con programas adaptados a tus necesidades. Con instructores experimentados, ambientes seguros y última tecnología, tu formación está en las mejores manos.</p>
+      <p>Ya sea tu primera experiencia al volante o busques perfeccionar tus habilidades, estamos comprometidos en guiarte con paciencia, profesionalismo y excelencia.</p>
+    </div>
+    <div class="col-md-6">
+      <img src="assets/class1.jpeg" class="img-fluid rounded shadow" alt="Clase de manejo">
+    </div>
+  </div>
+</section>
+
+<section id="momentos" style="background-color: rgba(2, 0, 12, 0.959); backdrop-filter: blur(4px); width: 100%; padding: 80px 0;">
+  <div class="container text-center">
+    <h2 class="text-white mb-5">Galería de Momentos</h2>
+    <div class="row g-4 justify-content-center" id="galeria">
+  <div class="swiper">
+    <div class="swiper-wrapper">
+      <div class="swiper-slide"><img src="assets/class1.jpeg" alt="Clase"></div>
+       <div class="swiper-slide"><img src="assets/class4.jpeg" alt="Clase"></div>
+      <div class="swiper-slide"><img src="assets/class2.jpeg" alt="Clase"></div>
+      <div class="swiper-slide"><img src="assets/class1.jpeg" alt="Clase"></div>
+      <div class="swiper-slide"><video src="assets/video/video2.mp4" muted loop playsinline autoplay class="img-fluid galeria-item"></video></div>
+      <div class="swiper-slide"><img src="assets/class4.jpeg" alt="Clase"></div>
+      <div class="swiper-slide"><video src="assets/video/video3.mp4" muted loop playsinline autoplay class="img-fluid galeria-item"></video></div>
+    </div>
+  </div>
+</section>
+
+<section id="contacto" class="container">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="fw-bold">Contáctanos</h2>
+      <p>Estamos aquí para ayudarte a dar tu primer paso hacia la independencia al volante. ¡Escríbenos hoy mismo o visítanos!</p>
+      <ul class="list-unstyled">
+        <li><i class="bi bi-geo-alt-fill"></i> Santa Cruz de Barahona, República Dominicana</li>
+        <li><i class="bi bi-telephone-fill"></i> <a href="tel:+18097022293" class="text-decoration-none">+1 (809) 702-2293</a></li>
+      </ul>
+
+      <!-- Botones sociales -->
+      <div class="mt-4 d-flex gap-3">
+        <a href="https://wa.me/18097022293" target="_blank" class="btn btn-success">
+          <i class="bi bi-whatsapp"></i> WhatsApp
+        </a>
+        <a href="https://www.instagram.com/montasautoacademy?igsh=MWpmbXNha3dzaGhmNA==" target="_blank" class="btn btn-outline-primary">
+          <i class="bi bi-instagram"></i> Instagram
+        </a>
+      </div>
+
+    </div>
+
+    <div class="col-md-6">
+      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3856.0646372991017!2d-71.19949922403272!3d18.20826198265192!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8ea54b4aa8c6e759%3A0x6df55c92e25553f0!2sSanta%20Cruz%20de%20Barahona%2C%20Rep%C3%BAblica%20Dominicana!5e0!3m2!1ses-419!2sdo!4v1714500000000!5m2!1ses-419!2sdo" width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>&copy; 2025 Montas Auto Academy. Todos los derechos reservados.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
+<script>
+  const swiper = new Swiper('.swiper', {
+    loop: true,
+    grabCursor: true,
+    spaceBetween: 20,
+    slidesPerView: 'auto',
+    autoplay: { delay: 3000, disableOnInteraction: false },
+    speed: 800,
+  });
+</script>
+
+</body>
+</html>

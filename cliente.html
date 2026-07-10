@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clientes | Montas Auto Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <script>
+    if (!localStorage.getItem('sesionActiva')) {
+      window.location.href = 'inicio.html';
+    }
+  </script>
+  
+  <style>
+    img[alt="Logo Montas Auto Academy"] {
+      filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.6));
+    }
+  </style>
+ 
+</head>
+<body>
+
+<script>
+  if (!localStorage.getItem("sesionActiva")) {
+    window.location.href = "login.html";
+  }
+</script>
+
+<!-- Header -->
+<nav class="navbar navbar-dark bg-dark px-4 py-3">
+  <div class="d-flex align-items-center">
+    <img src="assets/logo.png" alt="Logo Montas Auto Academy" width="50" class="me-2" />
+    <div class="text-white">
+      <h1 class="h5 mb-0">Montas Auto Academy</h1>
+      <small>Gestión de Clientes</small>
+    </div>
+  </div>
+  <div class="ms-auto">
+    <a href="panel.html" class="btn btn-outline-light btn-sm me-2">Inicio</a>
+    <a href="#" onclick="cerrarSesion()" class="btn btn-outline-danger btn-sm">Cerrar sesión</a>
+
+  </div>
+</nav>
+
+<!-- Contenido principal -->
+<main class="container my-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h5 mb-0">Listado de Clientes</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregarCliente">+ Agregar Cliente</button>
+  </div>
+
+  <div class="table-responsive">
+    <div class="mb-3">
+      <input type="text" class="form-control" id="buscarCliente" placeholder="Buscar por nombre, teléfono o cédula..." />
+    </div>
+    <table class="table table-hover align-middle text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>Nombre</th>
+          <th>Teléfono</th>
+          <th>Fecha de Inscripción</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaClientes">
+        <tr><td colspan="4">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Modal: Agregar Cliente -->
+<div class="modal fade" id="modalAgregarCliente" tabindex="-1" aria-labelledby="modalAgregarClienteLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <form class="modal-content" id="formCliente">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title">Nuevo Cliente</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        <!-- INFORMACIÓN PERSONAL -->
+        <h6 class="text-primary fw-bold mb-3">Información Personal</h6>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="nombre" class="form-label">Nombre completo *</label>
+            <input type="text" class="form-control" id="nombre" required />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="cedula" class="form-label">Cédula *</label>
+            <input type="text" class="form-control" id="cedula" required />
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="sexo" class="form-label">Sexo</label>
+            <select class="form-select" id="sexo">
+              <option value="">Seleccionar...</option>
+              <option value="M">Masculino</option>
+              <option value="F">Femenino</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="fechaNacimiento" class="form-label">Fecha de nacimiento</label>
+            <input type="date" class="form-control" id="fechaNacimiento" />
+          </div>
+        </div>
+        <div class="row mb-3">
+          <div class="col-md-12">
+            <label for="foto" class="form-label">Fotografía (JPG, PNG, WEBP · máx. 2 MB)</label>
+            <input type="file" class="form-control" id="foto" accept="image/jpeg,image/png,image/webp,image/jpg" />
+            <img id="fotoPreview" class="img-thumbnail mt-2 d-none" style="max-width: 140px; max-height: 140px; object-fit: cover;" alt="Vista previa de foto" />
+          </div>
+        </div>
+        
+        <!-- INFORMACIÓN DE CONTACTO -->
+        <h6 class="text-primary fw-bold mb-3 mt-4">Información de Contacto</h6>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="telefono" class="form-label">Teléfono *</label>
+            <input type="tel" class="form-control" id="telefono" required />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="email" class="form-label">Correo electrónico</label>
+            <input type="email" class="form-control" id="email" />
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="direccion" class="form-label">Dirección</label>
+          <input type="text" class="form-control" id="direccion" />
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="ciudad" class="form-label">Ciudad</label>
+            <input type="text" class="form-control" id="ciudad" />
+          </div>
+        </div>
+
+        <!-- CONTACTO DE EMERGENCIA -->
+        <h6 class="text-primary fw-bold mb-3 mt-4">Contacto de Emergencia</h6>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="contactoEmergencia" class="form-label">Nombre del contacto</label>
+            <input type="text" class="form-control" id="contactoEmergencia" />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="telefonoEmergencia" class="form-label">Teléfono</label>
+            <input type="tel" class="form-control" id="telefonoEmergencia" />
+          </div>
+        </div>
+
+        <!-- INFORMACIÓN ACADÉMICA -->
+        <h6 class="text-primary fw-bold mb-3 mt-4">Información Académica</h6>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="cursoId" class="form-label">Curso *</label>
+            <select id="cursoId" class="form-select" required>
+              <option value="">Seleccionar curso...</option>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="curso" class="form-label">Nombre del curso (auto)</label>
+            <input type="text" class="form-control" id="curso" readonly />
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="fechaInscripcion" class="form-label">Fecha de inscripción *</label>
+            <input type="date" class="form-control" id="fechaInscripcion" required />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="instructorId" class="form-label">Instructor</label>
+            <select id="instructorId" class="form-select">
+              <option value="">Seleccionar...</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="horasRequeridas" class="form-label">Horas requeridas</label>
+            <input type="number" class="form-control" id="horasRequeridas" min="0" value="0" />
+          </div>
+          <div class="col-md-6 mb-3">
+            <label for="horasCompletadas" class="form-label">Horas completadas</label>
+            <input type="number" class="form-control" id="horasCompletadas" min="0" value="0" />
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="estadoCliente" class="form-label">Estado del cliente</label>
+            <select class="form-select" id="estadoCliente">
+              <option value="Inscrito">Inscrito</option>
+              <option value="En curso">En curso</option>
+              <option value="Graduado">Graduado</option>
+              <option value="Suspendido">Suspendido</option>
+              <option value="Retirado">Retirado</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- INFORMACIÓN FINANCIERA -->
+        <h6 class="text-primary fw-bold mb-3 mt-4">Información Financiera</h6>
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label for="precio" class="form-label">Precio total *</label>
+            <input type="number" class="form-control" id="precio" min="0" required />
+          </div>
+          <div class="col-md-4 mb-3">
+            <label for="inscripcion" class="form-label">Inscripción</label>
+     <input type="number" class="form-control" id="inscripcion" min="0" />
+          </div>
+          <div class="col-md-4 mb-3">
+            <label forg="descuento" class="form-label">Descuento</label>
+            <input type="number" class="form-control" id="descuento" min="0" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success">Guardar Cliente</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function filtrarClientes() {
+    const busqueda = document.getElementById('buscarCliente').value.toLowerCase();
+    const tabla = document.getElementById('tablaClientes');
+    const filas = tabla.querySelectorAll('tr');
+    
+    filas.forEach(fila => {
+      const texto = fila.textContent.toLowerCase();
+      fila.style.display = texto.includes(busqueda) ? '' : 'none';
+    });
+  }
+
+  document.getElementById('buscarCliente')?.addEventListener('input', filtrarClientes);
+
+  function manejarVistaPreviaFoto(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    input?.addEventListener('change', () => {
+      const file = input.files && input.files[0];
+      if (!file) {
+        preview.classList.add('d-none');
+        preview.removeAttribute('src');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        preview.src = event.target.result;
+        preview.classList.remove('d-none');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  manejarVistaPreviaFoto('foto', 'fotoPreview');
+
+  async function cargarClientes() {
+    const tabla = document.getElementById("tablaClientes");
+    tabla.innerHTML = "<tr><td colspan='4'>Cargando...</td></tr>";
+
+    try {
+      const res = await fetch("http://localhost:4000/api/clientes");
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      const clientes = await res.json();
+
+      if (!Array.isArray(clientes) || clientes.length === 0) {
+        tabla.innerHTML = "<tr><td colspan='4'>No hay clientes registrados.</td></tr>";
+        return;
+      }
+
+      tabla.innerHTML = "";
+      clientes.forEach(c => {
+        tabla.innerHTML += `
+          <tr>
+            <td>${c.nombre}</td>
+            <td>${c.telefono}</td>
+            <td>${c.fecha ? new Date(c.fecha).toLocaleDateString("es-DO") : "Sin fecha"}</td>
+            <td>
+              <a href="expediente.html?id=${c.id}" class="btn btn-sm btn-info">Ver Expediente</a>
+              <a href="detalle-cliente.html?id=${c.id}" class="btn btn-sm btn-primary">Ver</a>
+              <a href="detalle-cliente.html?id=${c.id}&edit=true" class="btn btn-sm btn-warning">Editar</a>
+              <button class="btn btn-sm btn-danger" onclick="eliminarCliente(${c.id})">Eliminar</button>
+            </td>
+          </tr>`;
+      });
+
+    } catch (error) {
+      console.error('Error al cargar clientes:', error);
+      tabla.innerHTML = "<tr><td colspan='4'>No se pudieron cargar los clientes. Intenta de nuevo.</td></tr>";
+    }
+  }
+
+  async function subirFotoCliente(id, file) {
+    const formData = new FormData();
+    formData.append('foto', file);
+    const res = await fetch(`http://localhost:4000/api/clientes/${id}/foto`, {
+      method: 'POST',
+      body: formData
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'No se pudo guardar la fotografía');
+    }
+  }
+
+  async function eliminarCliente(id) {
+    if (confirm("¿Seguro que deseas eliminar este cliente?")) {
+      const res = await fetch(`http://localhost:4000/api/clientes/${id}`, { method: "DELETE" });
+      if (res.ok) {
+        alert("Cliente eliminado");
+        cargarClientes();
+      } else {
+        alert("Error al eliminar el cliente");
+      }
+    }
+  }
+
+  document.getElementById("formCliente").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const cedulaValor = document.getElementById("cedula").value.trim();
+    if (!cedulaValor) {
+      alert("Debes ingresar la cédula del cliente.");
+      return;
+    }
+
+    const fotoInput = document.getElementById("foto");
+    const fotoFile = fotoInput?.files?.[0];
+    if (fotoFile) {
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+      if (!allowedTypes.includes(fotoFile.type)) {
+        alert('Formato de imagen no permitido. Usa JPG, JPEG, PNG o WEBP.');
+        return;
+      }
+      if (fotoFile.size > 2 * 1024 * 1024) {
+        alert('La fotografía no puede superar los 2 MB.');
+        return;
+      }
+    }
+
+    const data = {
+      nombre: document.getElementById("nombre").value.trim(),
+      telefono: document.getElementById("telefono").value.trim(),
+      cedula: cedulaValor,
+      fecha: document.getElementById("fechaInscripcion").value,
+      curso_actual: document.getElementById("curso").value.trim(),
+      curso_id: document.getElementById("cursoId").value || null,
+      instructor_id: document.getElementById("instructorId").value || null,
+      precio_total: parseFloat(document.getElementById("precio").value) || 0,
+      inscripcion: parseFloat(document.getElementById("inscripcion").value) || 0,
+      descuento: parseFloat(document.getElementById("descuento").value) || 0,
+      email: document.getElementById("email").value.trim() || null,
+      sexo: document.getElementById("sexo").value || null,
+      ciudad: document.getElementById("ciudad").value.trim() || null,
+      contacto_emergencia: document.getElementById("contactoEmergencia").value.trim() || null,
+      telefono_emergencia: document.getElementById("telefonoEmergencia").value.trim() || null,
+      fecha_nacimiento: document.getElementById("fechaNacimiento").value || null,
+      direccion: document.getElementById("direccion").value.trim() || null,
+      horas_requeridas: parseInt(document.getElementById("horasRequeridas").value) || 0,
+      horas_completadas: parseInt(document.getElementById("horasCompletadas").value) || 0,
+      estado_cliente: document.getElementById("estadoCliente").value || 'Inscrito'
+    };
+
+    try {
+      const response = await fetch("http://localhost:4000/api/clientes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        if (fotoFile) {
+          await subirFotoCliente(result.id, fotoFile);
+        }
+        alert("Cliente guardado con éxito 🎉");
+        const modal = bootstrap.Modal.getInstance(document.getElementById("modalAgregarCliente"));
+        modal.hide();
+        document.getElementById("formCliente").reset();
+        document.getElementById("fotoPreview").classList.add('d-none');
+        cargarClientes();
+      } else {
+        alert("Error al guardar: " + (result.error || "Intenta de nuevo"));
+        console.error("Error del servidor:", result.error);
+      }
+
+    } catch (error) {
+      alert("Error en conexión con el servidor");
+      console.error("Error de red:", error);
+    }
+  });
+
+  let defaultInscripcionValue = 0;
+
+  async function cargarCursosCliente() {
+    const cursoSelect = document.getElementById('cursoId');
+    try {
+      const res = await fetch('http://localhost:4000/api/cursos');
+      if (!res.ok) {
+        console.error('Error cargando cursos:', res.status);
+        return;
+      }
+      const cursos = await res.json();
+      cursoSelect.innerHTML = '<option value="">Seleccionar curso...</option>';
+      cursos.forEach(curso => {
+        const option = document.createElement('option');
+        option.value = curso.id;
+        option.textContent = curso.nombre;
+        option.dataset.precio = curso.precio || 0;
+        cursoSelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error cargando cursos:', error);
+    }
+  }
+
+  async function cargarInstructoresCliente() {
+    const instructorSelect = document.getElementById('instructorId');
+    try {
+      const res = await fetch('http://localhost:4000/api/instructores');
+      if (!res.ok) {
+        console.error('Error cargando instructores:', res.status);
+        return;
+      }
+      const instructores = await res.json();
+      instructorSelect.innerHTML = '<option value="">Seleccionar...</option>';
+      instructores.forEach(instructor => {
+        const option = document.createElement('option');
+        option.value = instructor.id;
+        option.textContent = instructor.nombre;
+        instructorSelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error cargando instructores:', error);
+    }
+  }
+
+  async function cargarConfiguracionCliente() {
+    try {
+      const res = await fetch('http://localhost:4000/api/configuracion');
+      if (!res.ok) {
+        console.error('Error cargando configuración:', res.status);
+        return;
+      }
+      const config = await res.json();
+      defaultInscripcionValue = parseFloat(config.precio_inscripcion) || 0;
+      const inscripcionInput = document.getElementById('inscripcion');
+      if (!inscripcionInput.value) {
+        inscripcionInput.value = defaultInscripcionValue;
+      }
+    } catch (error) {
+      console.error('Error cargando configuración:', error);
+    }
+  }
+
+  async function cargarCursoSeleccionadoCliente(cursoId) {
+    const cursoInput = document.getElementById('curso');
+    const precioInput = document.getElementById('precio');
+    const inscripcionInput = document.getElementById('inscripcion');
+
+    if (!cursoId) {
+      cursoInput.value = '';
+      precioInput.value = 0;
+      if (!inscripcionInput.value) {
+        inscripcionInput.value = defaultInscripcionValue;
+      }
+      return;
+    }
+
+    try {
+      const res = await fetch(`http://localhost:4000/api/cursos/${cursoId}`);
+      if (!res.ok) {
+        console.error('Error cargando curso seleccionado:', res.status);
+        return;
+      }
+      const curso = await res.json();
+      cursoInput.value = curso.nombre || '';
+      precioInput.value = curso.precio || 0;
+      if (!inscripcionInput.value || parseFloat(inscripcionInput.value) === 0) {
+        inscripcionInput.value = defaultInscripcionValue;
+      }
+    } catch (error) {
+      console.error('Error cargando curso seleccionado:', error);
+    }
+  }
+
+  document.getElementById('cursoId').addEventListener('change', function() {
+    const selected = this.options[this.selectedIndex];
+    if (selected && selected.value) {
+      document.getElementById('curso').value = selected.text;
+      cargarCursoSeleccionadoCliente(selected.value);
+    }
+  });
+
+  // Al abrir el modal de agregar cliente
+  document.getElementById('modalAgregarCliente').addEventListener('show.bs.modal', function() {
+    cargarCursosCliente();
+    cargarInstructoresCliente();
+    cargarConfiguracionCliente();
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    cargarClientes();
+    cargarCursosCliente();
+    cargarInstructoresCliente();
+    cargarConfiguracionCliente();
+  });
+</script>
+<script>
+  function cerrarSesion() {
+    localStorage.removeItem('sesionActiva');
+    window.location.href = 'login.html';
+  }
+</script>
+
+
+</body>
+</html>

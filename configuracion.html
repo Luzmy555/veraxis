@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuración | Montas Auto Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <script>
+     //TEMPORALMENTE DESACTIVADO PARA PRUEBAS
+   if (!localStorage.getItem("sesionActiva")) {
+       window.location.href = "login.html";
+    }
+    </script>
+    
+  
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .container {
+      max-width: 900px;
+    }
+    .header-logo {
+      width: 45px;
+      margin-right: 10px;
+    }
+  </style>
+  <style>
+    /* Mini Beauty Pack para pantallas pequeñas */
+    @media (max-width: 576px) {
+      
+      /* Ajuste en formularios */
+      form input, form select, form button {
+        font-size: 1rem;
+        padding: 12px;
+      }
+  
+      /* Botones un poco más grandes y separados */
+      .btn {
+        margin-bottom: 8px;
+        width: 100%;
+      }
+  
+      /* Tablas más compactas */
+      .table th, .table td {
+        font-size: 0.85rem;
+        padding: 8px;
+      }
+  
+      /* Títulos centrados */
+      h1, h2, h3, h4, h5 {
+        text-align: center;
+        font-size: 1.2rem;
+      }
+  
+      /* Cards más "apretaditas" */
+      .card {
+        padding: 1rem;
+      }
+  
+      /* Margen en secciones principales */
+      main.container {
+        padding: 10px;
+      }
+  
+      /* Logo un poquito más pequeño */
+      img.logo-img, img[alt="Logo"], img[alt="Logo Montas Auto Academy"] {
+        width: 40px;
+      }
+  
+    }
+  </style>
+</head>
+<body>
+
+<script>
+  if (!localStorage.getItem("sesionActiva")) {
+    window.location.href = "login.html";
+  }
+</script>
+
+  <!-- Header -->
+  <nav class="navbar navbar-dark bg-dark px-4 py-3">
+    <div class="d-flex align-items-center">
+      <img src="assets/logo.png" alt="Logo" class="header-logo" />
+      <div class="text-white">
+        <h1 class="h5 mb-0">Montas Auto Academy</h1>
+        <small>Configuración del Sistema</small>
+      </div>
+    </div>
+    <div class="ms-auto">
+      <a href="panel.html" class="btn btn-outline-light btn-sm me-2">Inicio</a>
+      <a href="#" onclick="cerrarSesion()" class="btn btn-outline-danger btn-sm">Cerrar sesión</a>
+    </div>
+  </nav>
+
+  <main class="container my-5">
+    <!-- Gestión de Instructores por Curso -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-success text-white">
+        <i class="bi bi-person-badge-fill me-2"></i> Asignar Instructores a Cursos
+      </div>
+      <div class="card-body">
+        <form id="formCursoInstructor">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Seleccionar Curso</label>
+              <select class="form-select" id="selectCurso" required>
+                <option value="">Cargando cursos...</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Instructores del Curso</label>
+              <div id="instructoresAsignados" class="alert alert-info small" style="min-height: 40px;">
+                Selecciona un curso para ver sus instructores
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Seleccionar Instructores (puedes elegir varios)</label>
+              <div id="instructoresCheckboxes" class="border rounded p-3" style="max-height: 300px; overflow-y: auto; background-color: #f8f9fa;">
+                <p class="text-muted small">Cargando instructores...</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-end mt-4">
+            <button type="submit" class="btn btn-success">Guardar Asignación</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Configuración del Curso Seleccionado -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-primary text-white">
+        <i class="bi bi-book-half me-2"></i> Configuración del Curso Seleccionado
+      </div>
+      <div class="card-body">
+        <form id="formConfiguracionCurso">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Seleccionar curso</label>
+              <select class="form-select" id="selectCursoConfig" required>
+                <option value="">Cargando cursos...</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Estado del curso</label>
+              <select class="form-select" id="cursoActivoConfig">
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
+          </div>
+          <div class="row g-3 mt-3">
+            <div class="col-md-6">
+              <label class="form-label">Nombre del curso</label>
+              <input type="text" class="form-control" id="cursoNombreConfig" required disabled />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Precio total del curso</label>
+              <input type="number" class="form-control" id="cursoPrecioConfig" step="0.01" required disabled />
+            </div>
+          </div>
+          <div class="row g-3 mt-3">
+            <div class="col-md-6">
+              <label class="form-label">Duración del curso (semanas)</label>
+              <input type="number" class="form-control" id="cursoDuracionConfig" required disabled />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Descripción</label>
+              <textarea class="form-control" id="cursoDescripcionConfig" rows="2" disabled></textarea>
+            </div>
+          </div>
+          <div class="text-end mt-4">
+            <button type="submit" class="btn btn-primary">Guardar Curso</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Parámetros Generales del Sistema -->
+    <div class="card shadow-sm mb-4">
+      <div class="card-header bg-secondary text-white">
+        <i class="bi bi-gear-fill me-2"></i> Parámetros Generales del Sistema
+      </div>
+      <div class="card-body">
+        <form id="formConfiguracion">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Precio total del curso</label>
+              <input type="number" class="form-control" id="precioCurso" value="6000" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Precio de inscripción</label>
+              <input type="number" class="form-control" id="precioInscripcion" value="1500" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Cantidad de clases</label>
+              <input type="number" class="form-control" id="clasesTotales" value="12" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Duración estimada (días)</label>
+              <input type="number" class="form-control" id="duracionDias" value="30" required />
+            </div>
+          </div>
+          <div class="text-end mt-4">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Cambiar Usuario y Contraseña -->
+    <div class="card shadow-sm">
+      <div class="card-header bg-dark text-white">
+        <i class="bi bi-shield-lock-fill me-2"></i> Cambiar Usuario y Contraseña
+      </div>
+      <div class="card-body">
+        <form id="formUsuario">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Nuevo Usuario</label>
+              <input type="text" class="form-control" id="nuevoUsuario" placeholder="ej. montasadmin" required />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Nueva Contraseña</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="nuevaClave" placeholder="********" required />
+                <button class="btn btn-outline-secondary" type="button" id="toggleClave">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </div>
+            </div>
+            
+          </div>
+          <div class="text-end mt-4">
+            <button type="submit" class="btn btn-success">Guardar Cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/authHelpers.js"></script>
+  <script>
+    function cerrarSesion() {
+      localStorage.removeItem("sesionActiva");
+      window.location.href = "login.html";
+    }
+
+    // Cargar cursos en los selects
+    async function cargarCursos() {
+      try {
+        const res = await fetch('http://localhost:4000/api/cursos', {
+          headers: getAuthHeaders()
+        });
+        const cursos = await res.json();
+
+        const select = document.getElementById('selectCurso');
+        const selectConfig = document.getElementById('selectCursoConfig');
+        select.innerHTML = '<option value="">Selecciona un curso</option>';
+        selectConfig.innerHTML = '<option value="">Selecciona un curso</option>';
+
+        cursos.forEach(curso => {
+          const option = document.createElement('option');
+          option.value = curso.id;
+          option.textContent = curso.nombre;
+          select.appendChild(option);
+
+          const optionConfig = document.createElement('option');
+          optionConfig.value = curso.id;
+          optionConfig.textContent = curso.nombre;
+          selectConfig.appendChild(optionConfig);
+        });
+      } catch (error) {
+        console.error('Error cargando cursos:', error);
+      }
+    }
+
+    async function cargarCursoSeleccionado(cursoId) {
+      const inputs = [
+        'cursoNombreConfig',
+        'cursoPrecioConfig',
+        'cursoDuracionConfig',
+        'cursoDescripcionConfig',
+        'cursoActivoConfig'
+      ].map(id => document.getElementById(id));
+
+      if (!cursoId) {
+        inputs.forEach(input => {
+          input.value = '';
+          input.disabled = true;
+        });
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://localhost:4000/api/cursos/${cursoId}`, {
+          headers: getAuthHeaders()
+        });
+        if (!res.ok) throw new Error('No se pudo cargar el curso');
+
+        const curso = await res.json();
+        document.getElementById('cursoNombreConfig').value = curso.nombre || '';
+        document.getElementById('cursoPrecioConfig').value = curso.precio || 0;
+        document.getElementById('cursoDuracionConfig').value = curso.duracion_semanas || 0;
+        document.getElementById('cursoDescripcionConfig').value = curso.descripcion || '';
+        document.getElementById('cursoActivoConfig').value = curso.activo ? 'true' : 'false';
+        inputs.forEach(input => input.disabled = false);
+      } catch (error) {
+        console.error('Error cargando curso seleccionado:', error);
+        inputs.forEach(input => input.disabled = true);
+      }
+    }
+
+    // Cargar instructores disponibles
+    async function cargarInstructoresDisponibles() {
+      try {
+        const res = await fetch('http://localhost:4000/api/instructores', {
+          headers: getAuthHeaders()
+        });
+        const instructores = await res.json();
+        const container = document.getElementById('instructoresCheckboxes');
+        container.innerHTML = '';
+        
+        if (instructores.length === 0) {
+          container.innerHTML = '<p class="text-muted">No hay instructores registrados</p>';
+          return;
+        }
+
+        instructores.forEach(instr => {
+          const label = document.createElement('label');
+          label.className = 'form-check mb-2';
+          label.innerHTML = `
+            <input class="form-check-input instructor-checkbox" type="checkbox" value="${instr.id}" data-nombre="${instr.nombre}">
+            <span class="form-check-label">${instr.nombre} - ${instr.especialidad || 'Sin especialidad'}</span>
+          `;
+          container.appendChild(label);
+        });
+      } catch (error) {
+        console.error('Error cargando instructores:', error);
+      }
+    }
+
+    // Cargar instructores asignados al curso seleccionado
+    async function cargarInstructoresDelCurso(cursoId) {
+      try {
+        const res = await fetch(`http://localhost:4000/api/cursos/${cursoId}/instructores`, {
+          headers: getAuthHeaders()
+        });
+        const instructoresAsignados = await res.json();
+        const idsAsignados = instructoresAsignados.map(i => i.id);
+
+        // Actualizar checkboxes
+        document.querySelectorAll('.instructor-checkbox').forEach(checkbox => {
+          checkbox.checked = idsAsignados.includes(parseInt(checkbox.value));
+        });
+
+        // Mostrar instructores asignados
+        const container = document.getElementById('instructoresAsignados');
+        if (instructoresAsignados.length === 0) {
+          container.innerHTML = '<strong>No hay instructores asignados</strong>';
+        } else {
+          container.innerHTML = '<strong>Instructores:</strong> ' + 
+            instructoresAsignados.map(i => i.nombre).join(', ');
+        }
+      } catch (error) {
+        console.error('Error cargando instructores del curso:', error);
+      }
+    }
+
+    // Event listener para cambio de curso de asignación
+    document.getElementById('selectCurso').addEventListener('change', function() {
+      if (this.value) {
+        cargarInstructoresDelCurso(this.value);
+      } else {
+        document.getElementById('instructoresAsignados').innerHTML = 'Selecciona un curso para ver sus instructores';
+        document.querySelectorAll('.instructor-checkbox').forEach(cb => cb.checked = false);
+      }
+    });
+
+    // Event listener para cambio de curso de configuración
+    document.getElementById('selectCursoConfig').addEventListener('change', function() {
+      cargarCursoSeleccionado(this.value);
+    });
+
+    // Form submit para guardar configuración del curso seleccionado
+    document.getElementById('formConfiguracionCurso').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const cursoId = document.getElementById('selectCursoConfig').value;
+      if (!cursoId) {
+        alert('Selecciona un curso para editar.');
+        return;
+      }
+
+      const data = {
+        nombre: document.getElementById('cursoNombreConfig').value.trim(),
+        descripcion: document.getElementById('cursoDescripcionConfig').value.trim(),
+        duracion_semanas: parseInt(document.getElementById('cursoDuracionConfig').value, 10) || 0,
+        precio: parseFloat(document.getElementById('cursoPrecioConfig').value) || 0,
+        activo: document.getElementById('cursoActivoConfig').value === 'true'
+      };
+
+      try {
+        const res = await fetch(`http://localhost:4000/api/cursos/${cursoId}`, {
+          method: 'PUT',
+          headers: {
+            ...getAuthHeaders(),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          alert('Curso actualizado correctamente. Los cambios se reflejarán en los clientes asignados.');
+          cargarCursos();
+          cargarCursoSeleccionado(cursoId);
+        } else {
+          const errorText = await res.text();
+          console.error('Error guardando curso:', errorText);
+          alert('Error al guardar el curso.');
+        }
+      } catch (error) {
+        console.error('Error guardando curso:', error);
+        alert('Error de red al guardar el curso.');
+      }
+    });
+
+    // Form submit para guardar asignación
+    document.getElementById('formCursoInstructor').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const cursoId = document.getElementById('selectCurso').value;
+      if (!cursoId) {
+        alert('Selecciona un curso');
+        return;
+      }
+
+      const instructor_ids = Array.from(document.querySelectorAll('.instructor-checkbox:checked'))
+        .map(cb => parseInt(cb.value));
+
+      try {
+        const res = await fetch(`http://localhost:4000/api/cursos/${cursoId}/instructores`, {
+          method: 'PUT',
+          headers: {
+            ...getAuthHeaders(),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ instructor_ids })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          alert(data.mensaje || 'Instructores asignados correctamente');
+          cargarInstructoresDelCurso(cursoId);
+        } else {
+          alert('Error al asignar instructores');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error de red');
+      }
+    });
+  
+    async function cargarConfiguracion() {
+      try {
+        const res = await fetch("http://localhost:4000/api/configuracion", {
+          headers: getAuthHeaders()
+        });
+
+        if (!res.ok) {
+          throw new Error('No autorizado');
+        }
+
+        const config = await res.json();
+        document.getElementById("precioCurso").value = config.precio_curso;
+        document.getElementById("precioInscripcion").value = config.precio_inscripcion;
+        document.getElementById("clasesTotales").value = config.clases_totales;
+        document.getElementById("duracionDias").value = config.duracion_dias;
+      } catch (error) {
+        console.error("Error al cargar configuración:", error);
+        alert('Acceso denegado o error al cargar configuración.');
+        window.location.href = 'panel.html';
+      }
+    }
+  
+    document.getElementById("formConfiguracion").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const data = {
+        precio_curso: parseFloat(document.getElementById("precioCurso").value),
+        precio_inscripcion: parseFloat(document.getElementById("precioInscripcion").value),
+        clases_totales: parseInt(document.getElementById("clasesTotales").value),
+        duracion_dias: parseInt(document.getElementById("duracionDias").value),
+      };
+  
+      try {
+        const res = await fetch("http://localhost:4000/api/configuracion", {
+          method: "PUT",
+          headers: getAuthHeaders(),
+          body: JSON.stringify(data)
+        });
+  
+        if (res.ok) {
+          alert("Configuración guardada correctamente.");
+        } else {
+          alert("Error al guardar configuración.");
+        }
+      } catch (error) {
+        alert("Error de red.");
+        console.error(error);
+      }
+    });
+  
+    document.getElementById("formUsuario").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const usuario = document.getElementById("nuevoUsuario").value;
+      const clave = document.getElementById("nuevaClave").value;
+  
+      if (clave.length < 6) {
+        alert("La contraseña debe tener al menos 6 caracteres.");
+        return;
+      }
+  
+      try {
+        const res = await fetch("http://localhost:4000/api/configuracion/usuario", {
+          method: "POST",
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ usuario, clave })
+        });
+  
+        if (res.ok) {
+          alert("Usuario y contraseña actualizados correctamente.");
+          this.reset();
+        } else {
+          alert("Error al actualizar usuario.");
+        }
+      } catch (error) {
+        alert("Error de red.");
+        console.error(error);
+      }
+    });
+  
+    window.onload = function() {
+      if (!requireAdminPage()) {
+        return;
+      }
+      cargarConfiguracion();
+      cargarCursos();
+      cargarInstructoresDisponibles();
+      cargarCursoSeleccionado('');
+
+      const toggleBtn = document.getElementById("toggleClave");
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", function() {
+          const claveInput = document.getElementById("nuevaClave");
+          const icon = this.querySelector("i");
+  
+          if (claveInput.type === "password") {
+            claveInput.type = "text";
+            icon.classList.remove("bi-eye");
+            icon.classList.add("bi-eye-slash");
+          } else {
+            claveInput.type = "password";
+            icon.classList.remove("bi-eye-slash");
+            icon.classList.add("bi-eye");
+          }
+        });
+      }
+    };
+  </script>
+  
+    
+</body>
+</html>
