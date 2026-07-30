@@ -15,7 +15,7 @@
 
 <nav class="navbar navbar-dark bg-dark px-4 py-3">
   <div class="d-flex align-items-center">
-    <img src="assets/logo.png" alt="Logo Montas Auto Academy" width="50" class="me-2" />
+    <img data-branding="logo" src="assets/logo.png" alt="Logo Montas Auto Academy" width="50" class="me-2" />
     <div class="text-white">
       <h1 class="h5 mb-0">Instructores</h1>
       <small>Administra instructores y asignaciones</small>
@@ -42,11 +42,12 @@
           <th>Correo</th>
           <th>Especialidad</th>
           <th>Estado</th>
+          <th>Cuenta vinculada</th>
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody id="tablaInstructores">
-        <tr><td colspan="6">Cargando...</td></tr>
+        <tr><td colspan="7">Cargando...</td></tr>
       </tbody>
     </table>
   </div>
@@ -84,6 +85,19 @@
               <option value="false">No</option>
             </select>
           </div>
+          <div class="col-md-6">
+            <label class="form-label">Cuenta de usuario vinculada</label>
+            <select id="instrUsuarioId" class="form-select">
+              <option value="">Sin vincular</option>
+            </select>
+            <div class="form-text">Conecta este instructor con su cuenta de acceso para que su panel muestre solo sus estudiantes y horario.</div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Sucursal</label>
+            <select id="instrSucursalId" class="form-select">
+              <option value="">Sin asignar</option>
+            </select>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -95,31 +109,72 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
 <script src="js/authHelpers.js"></script>
+<script>aplicarBranding();</script>
 <script>
   let instructorEditId = null;
+  let usuariosDisponibles = [];
   const modalInstructor = new bootstrap.Modal(document.getElementById('modalInstructor'));
+
+  async function cargarUsuariosDisponibles() {
+    try {
+      const res = await fetch(API_BASE + '/api/configuracion/usuarios', {
+        headers: getAuthHeaders()
+      });
+      if (!res.ok) return;
+      usuariosDisponibles = await res.json();
+      const select = document.getElementById('instrUsuarioId');
+      select.innerHTML = '<option value="">Sin vincular</option>';
+      usuariosDisponibles.forEach(u => {
+        const option = document.createElement('option');
+        option.value = u.id;
+        option.textContent = `${u.usuario} (${u.rol})`;
+        select.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error cargando usuarios:', error);
+    }
+  }
+
+  async function cargarSucursalesDisponibles() {
+    try {
+      const res = await fetch(API_BASE + '/api/sucursales', { headers: getAuthHeaders() });
+      if (!res.ok) return;
+      const sedes = await res.json();
+      const select = document.getElementById('instrSucursalId');
+      select.innerHTML = '<option value="">Sin asignar</option>';
+      sedes.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s.id;
+        option.textContent = s.nombre;
+        select.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error cargando sucursales:', error);
+    }
+  }
 
   async function cargarInstructores() {
     const tabla = document.getElementById('tablaInstructores');
-    tabla.innerHTML = '<tr><td colspan="6">Cargando...</td></tr>';
+    tabla.innerHTML = '<tr><td colspan="7">Cargando...</td></tr>';
 
     try {
-      const res = await fetch('http://localhost:4000/api/instructores', {
+      const res = await fetch(API_BASE + '/api/instructores', {
         headers: getAuthHeaders()
       });
 
       if (!res.ok) {
         const errorText = await res.text();
         console.error('Error cargando instructores', res.status, errorText);
-        tabla.innerHTML = '<tr><td colspan="6">Error al cargar instructores.</td></tr>';
+        tabla.innerHTML = '<tr><td colspan="7">Error al cargar instructores.</td></tr>';
         return;
       }
 
       const instructores = await res.json();
 
       if (!Array.isArray(instructores) || instructores.length === 0) {
-        tabla.innerHTML = '<tr><td colspan="6">No hay instructores registrados.</td></tr>';
+        tabla.innerHTML = '<tr><td colspan="7">No hay instructores registrados.</td></tr>';
         return;
       }
 
@@ -127,11 +182,12 @@
       instructores.forEach(ins => {
         tabla.innerHTML += `
           <tr>
-            <td>${ins.nombre}</td>
-            <td>${ins.telefono || '-'}</td>
-            <td>${ins.correo || '-'}</td>
-            <td>${ins.especialidad || '-'}</td>
+            <td>${escapeHtml(ins.nombre)}</td>
+            <td>${escapeHtml(ins.telefono) || '-'}</td>
+            <td>${escapeHtml(ins.correo) || '-'}</td>
+            <td>${escapeHtml(ins.especialidad) || '-'}</td>
             <td>${ins.activo ? 'Activo' : 'Inactivo'}</td>
+            <td>${ins.usuario_vinculado ? `<span class="badge bg-info text-dark">${escapeHtml(ins.usuario_vinculado)}</span>` : '<span class="text-muted">Sin vincular</span>'}</td>
             <td>
               <button class="btn btn-sm btn-warning me-1" onclick="editarInstructor(${ins.id})">Editar</button>
               <button class="btn btn-sm btn-danger" onclick="eliminarInstructor(${ins.id})">Eliminar</button>
@@ -140,7 +196,7 @@
       });
     } catch (error) {
       console.error(error);
-      tabla.innerHTML = '<tr><td colspan="6">Error al cargar instructores.</td></tr>';
+      tabla.innerHTML = '<tr><td colspan="7">Error al cargar instructores.</td></tr>';
     }
   }
 
@@ -149,12 +205,14 @@
     document.getElementById('modalInstructorLabel').textContent = 'Nuevo instructor';
     document.getElementById('formInstructor').reset();
     document.getElementById('instrActivo').value = 'true';
+    cargarUsuariosDisponibles();
+    cargarSucursalesDisponibles();
     modalInstructor.show();
   }
 
   async function editarInstructor(id) {
     try {
-      const res = await fetch(`http://localhost:4000/api/instructores/${id}`, {
+      const res = await fetch(`${API_BASE}/api/instructores/${id}`, {
         headers: getAuthHeaders()
       });
 
@@ -173,6 +231,9 @@
       document.getElementById('instrCorreo').value = ins.correo || '';
       document.getElementById('instrEspecialidad').value = ins.especialidad || '';
       document.getElementById('instrActivo').value = ins.activo ? 'true' : 'false';
+      await Promise.all([cargarUsuariosDisponibles(), cargarSucursalesDisponibles()]);
+      document.getElementById('instrUsuarioId').value = ins.usuario_id || '';
+      document.getElementById('instrSucursalId').value = ins.sucursal_id || '';
       modalInstructor.show();
     } catch (error) {
       console.error(error);
@@ -183,7 +244,7 @@
   async function eliminarInstructor(id) {
     if (!confirm('¿Deseas eliminar este instructor?')) return;
     try {
-      await fetch(`http://localhost:4000/api/instructores/${id}`, {
+      await fetch(`${API_BASE}/api/instructores/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
@@ -202,11 +263,13 @@
       telefono: document.getElementById('instrTelefono').value.trim(),
       correo: document.getElementById('instrCorreo').value.trim(),
       especialidad: document.getElementById('instrEspecialidad').value.trim(),
-      activo: document.getElementById('instrActivo').value === 'true'
+      activo: document.getElementById('instrActivo').value === 'true',
+      usuario_id: document.getElementById('instrUsuarioId').value || null,
+      sucursal_id: document.getElementById('instrSucursalId').value || null
     };
 
     try {
-      const url = instructorEditId ? `http://localhost:4000/api/instructores/${instructorEditId}` : 'http://localhost:4000/api/instructores';
+      const url = instructorEditId ? `${API_BASE}/api/instructores/${instructorEditId}` : API_BASE + '/api/instructores';
       const method = instructorEditId ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,

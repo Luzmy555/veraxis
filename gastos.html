@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gastos | Montas Auto Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body>
+<script>
+  if (!localStorage.getItem('sesionActiva')) {
+    window.location.href = 'login.html';
+  }
+</script>
+
+<nav class="navbar navbar-dark bg-dark px-4 py-3">
+  <div class="d-flex align-items-center">
+    <img data-branding="logo" src="assets/logo.png" alt="Logo Montas Auto Academy" width="50" class="me-2" />
+    <div class="text-white">
+      <h1 class="h5 mb-0">Gastos</h1>
+      <small>Gastos operativos de la escuela</small>
+    </div>
+  </div>
+  <div class="ms-auto">
+    <a href="panel.html" class="btn btn-outline-light btn-sm me-2">Inicio</a>
+    <button onclick="cerrarSesion()" class="btn btn-outline-danger btn-sm">Cerrar sesión</button>
+  </div>
+</nav>
+
+<main class="container my-5">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="h5 mb-0">Registro de gastos</h2>
+    <div>
+      <button class="btn btn-outline-secondary btn-sm me-2" onclick="exportarCsv()"><i class="bi bi-download me-1"></i>Exportar CSV (606)</button>
+      <button class="btn btn-primary btn-sm" onclick="abrirFormularioGasto()">+ Nuevo gasto</button>
+    </div>
+  </div>
+
+  <div class="row g-2 mb-4">
+    <div class="col-md-3">
+      <label class="form-label small text-muted">Desde</label>
+      <input type="date" id="filtroDesde" class="form-control form-control-sm" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small text-muted">Hasta</label>
+      <input type="date" id="filtroHasta" class="form-control form-control-sm" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small text-muted">Categoría</label>
+      <select id="filtroCategoria" class="form-select form-select-sm">
+        <option value="">Todas</option>
+      </select>
+    </div>
+    <div class="col-md-3" id="wrapperFiltroSede" style="display:none">
+      <label class="form-label small text-muted">Sede</label>
+      <select id="filtroSede" class="form-select form-select-sm">
+        <option value="">Todas las sedes</option>
+      </select>
+    </div>
+    <div class="col-md-3 d-flex align-items-end">
+      <button class="btn btn-outline-primary btn-sm w-100" onclick="cargarGastos()">Filtrar</button>
+      <span id="sedeFijaLabelGastos" class="badge bg-secondary ms-2 align-self-center" style="display:none;"></span>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card p-3"><div class="text-muted small">Total gastado</div><div class="h4 mb-0" id="totalGastado">RD$ 0.00</div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3"><div class="text-muted small">ITBIS incluido</div><div class="h4 mb-0" id="totalItbis">RD$ 0.00</div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card p-3"><div class="text-muted small">Cantidad de gastos</div><div class="h4 mb-0" id="totalCantidad">0</div></div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>Fecha</th>
+          <th>Categoría</th>
+          <th>Descripción</th>
+          <th>Proveedor</th>
+          <th>RNC/NCF</th>
+          <th>Monto</th>
+          <th>ITBIS</th>
+          <th>Método</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaGastos">
+        <tr><td colspan="9">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Modal: Nuevo/Editar Gasto -->
+<div class="modal fade" id="modalGasto" tabindex="-1" aria-labelledby="modalGastoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <form class="modal-content" id="formGasto">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title" id="modalGastoLabel">Nuevo gasto</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Fecha *</label>
+            <input id="gastoFecha" type="date" class="form-control" required />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Categoría *</label>
+            <select id="gastoCategoria" class="form-select" required></select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Método de pago</label>
+            <select id="gastoMetodoPago" class="form-select">
+              <option value="Efectivo">Efectivo</option>
+              <option value="Transferencia">Transferencia</option>
+              <option value="Tarjeta">Tarjeta</option>
+              <option value="Cheque">Cheque</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Descripción</label>
+            <input id="gastoDescripcion" class="form-control" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Proveedor</label>
+            <input id="gastoProveedor" class="form-control" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">RNC / Cédula del proveedor</label>
+            <input id="gastoRnc" class="form-control" placeholder="Para que el gasto sea deducible ante la DGII" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">NCF (comprobante fiscal)</label>
+            <input id="gastoNcf" class="form-control" placeholder="Ej. B1500000123" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Monto total (RD$) *</label>
+            <input id="gastoMonto" type="number" min="0.01" step="0.01" class="form-control" required />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">ITBIS (RD$)</label>
+            <input id="gastoItbis" type="number" min="0" step="0.01" class="form-control" />
+            <div class="form-check mt-1">
+              <input class="form-check-input" type="checkbox" id="gastoItbisAuto" />
+              <label class="form-check-label small text-muted" for="gastoItbisAuto">Calcular 18% automático</label>
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Comprobante / recibo (opcional)</label>
+            <input id="gastoComprobante" type="file" class="form-control" accept="application/pdf,image/*" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Guardar gasto</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:1055"><div id="toasts"></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/authHelpers.js"></script>
+<script>aplicarBranding();</script>
+<script>
+  let CATEGORIAS = [];
+  let gastoEditId = null;
+  let gastosCache = [];
+  const modalGasto = new bootstrap.Modal(document.getElementById('modalGasto'));
+
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toasts');
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-bg-${type} border-0 mb-2`;
+    toast.innerHTML = `<div class="d-flex"><div class="toast-body">${escapeHtml(message)}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+    container.appendChild(toast);
+    new bootstrap.Toast(toast, { delay: 4000 }).show();
+  }
+
+  function llenarCategorias(select, incluirTodas) {
+    select.innerHTML = incluirTodas ? '<option value="">Todas</option>' : '';
+    CATEGORIAS.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c.nombre; o.textContent = c.nombre;
+      select.appendChild(o);
+    });
+  }
+
+  async function cargarCategorias() {
+    try {
+      const res = await fetch(API_BASE + '/api/gastos/categorias', { headers: getAuthHeaders() });
+      CATEGORIAS = await res.json();
+    } catch (error) {
+      console.error('Error cargando categorías:', error);
+      CATEGORIAS = [];
+    }
+    llenarCategorias(document.getElementById('filtroCategoria'), true);
+    llenarCategorias(document.getElementById('gastoCategoria'), false);
+  }
+
+  document.getElementById('gastoItbisAuto').addEventListener('change', function () {
+    if (this.checked) calcularItbisAuto();
+  });
+  document.getElementById('gastoMonto').addEventListener('input', () => {
+    if (document.getElementById('gastoItbisAuto').checked) calcularItbisAuto();
+  });
+  function calcularItbisAuto() {
+    const monto = parseFloat(document.getElementById('gastoMonto').value) || 0;
+    // El monto ya incluye ITBIS 18%: itbis = monto - (monto / 1.18)
+    const itbis = monto - (monto / 1.18);
+    document.getElementById('gastoItbis').value = itbis.toFixed(2);
+  }
+
+  async function cargarGastos() {
+    const tabla = document.getElementById('tablaGastos');
+    tabla.innerHTML = '<tr><td colspan="9">Cargando...</td></tr>';
+
+    const desde = document.getElementById('filtroDesde').value;
+    const hasta = document.getElementById('filtroHasta').value;
+    const categoria = document.getElementById('filtroCategoria').value;
+    const sede = document.getElementById('filtroSede').value;
+    const params = new URLSearchParams();
+    if (desde) params.set('desde', desde);
+    if (hasta) params.set('hasta', hasta);
+    if (categoria) params.set('categoria', categoria);
+    if (sede) params.set('sucursal_id', sede);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/gastos?${params}`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const gastos = await res.json();
+      gastosCache = Array.isArray(gastos) ? gastos : [];
+
+      let totalMonto = 0, totalItbis = 0;
+      if (!Array.isArray(gastos) || gastos.length === 0) {
+        tabla.innerHTML = '<tr><td colspan="9">No hay gastos registrados en este período.</td></tr>';
+      } else {
+        tabla.innerHTML = '';
+        gastos.forEach(g => {
+          totalMonto += parseFloat(g.monto);
+          totalItbis += parseFloat(g.itbis || 0);
+          tabla.innerHTML += `
+            <tr>
+              <td>${new Date(g.fecha).toLocaleDateString('es-DO')}</td>
+              <td>${escapeHtml(g.categoria)}</td>
+              <td class="text-start">${escapeHtml(g.descripcion) || '-'}</td>
+              <td>${escapeHtml(g.proveedor) || '-'}</td>
+              <td><div class="small">${escapeHtml(g.rnc_proveedor) || '-'}</div><div class="small text-muted">${escapeHtml(g.ncf) || ''}</div></td>
+              <td>RD$ ${parseFloat(g.monto).toFixed(2)}</td>
+              <td>RD$ ${parseFloat(g.itbis || 0).toFixed(2)}</td>
+              <td><span class="badge bg-secondary">${escapeHtml(g.metodo_pago)}</span></td>
+              <td>
+                ${g.comprobante ? `<a class="btn btn-sm btn-outline-success me-1 mb-1" href="#" onclick="descargarComprobante(${g.id}); return false;">Recibo</a>` : ''}
+                <button class="btn btn-sm btn-warning me-1 mb-1" onclick="editarGasto(${g.id})">Editar</button>
+                <button class="btn btn-sm btn-danger mb-1" onclick="eliminarGasto(${g.id})">Eliminar</button>
+              </td>
+            </tr>`;
+        });
+      }
+      document.getElementById('totalGastado').textContent = `RD$ ${totalMonto.toFixed(2)}`;
+      document.getElementById('totalItbis').textContent = `RD$ ${totalItbis.toFixed(2)}`;
+      document.getElementById('totalCantidad').textContent = gastos.length;
+    } catch (error) {
+      console.error(error);
+      tabla.innerHTML = '<tr><td colspan="9">Error al cargar los gastos.</td></tr>';
+    }
+  }
+
+  function abrirFormularioGasto() {
+    gastoEditId = null;
+    document.getElementById('modalGastoLabel').textContent = 'Nuevo gasto';
+    document.getElementById('formGasto').reset();
+    document.getElementById('gastoFecha').value = new Date().toISOString().slice(0, 10);
+    modalGasto.show();
+  }
+
+  async function editarGasto(id) {
+    try {
+      const g = gastosCache.find(x => x.id === id);
+      if (!g) throw new Error('No encontrado');
+
+      gastoEditId = id;
+      document.getElementById('modalGastoLabel').textContent = 'Editar gasto';
+      document.getElementById('gastoFecha').value = g.fecha.slice(0, 10);
+      document.getElementById('gastoCategoria').value = g.categoria;
+      document.getElementById('gastoMetodoPago').value = g.metodo_pago;
+      document.getElementById('gastoDescripcion').value = g.descripcion || '';
+      document.getElementById('gastoProveedor').value = g.proveedor || '';
+      document.getElementById('gastoRnc').value = g.rnc_proveedor || '';
+      document.getElementById('gastoNcf').value = g.ncf || '';
+      document.getElementById('gastoMonto').value = g.monto;
+      document.getElementById('gastoItbis').value = g.itbis || 0;
+      document.getElementById('gastoItbisAuto').checked = false;
+      modalGasto.show();
+    } catch (error) {
+      showToast('No se pudo cargar el gasto para editar.', 'danger');
+    }
+  }
+
+  document.getElementById('formGasto').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const fd = new FormData();
+    fd.append('fecha', document.getElementById('gastoFecha').value);
+    fd.append('categoria', document.getElementById('gastoCategoria').value);
+    fd.append('metodo_pago', document.getElementById('gastoMetodoPago').value);
+    fd.append('descripcion', document.getElementById('gastoDescripcion').value.trim());
+    fd.append('proveedor', document.getElementById('gastoProveedor').value.trim());
+    fd.append('rnc_proveedor', document.getElementById('gastoRnc').value.trim());
+    fd.append('ncf', document.getElementById('gastoNcf').value.trim());
+    fd.append('monto', document.getElementById('gastoMonto').value);
+    fd.append('itbis', document.getElementById('gastoItbis').value || 0);
+    const archivo = document.getElementById('gastoComprobante').files[0];
+    if (archivo) fd.append('comprobante', archivo);
+
+    const headers = getAuthHeaders();
+    delete headers['Content-Type'];
+
+    try {
+      const url = gastoEditId ? `${API_BASE}/api/gastos/${gastoEditId}` : API_BASE + '/api/gastos';
+      const method = gastoEditId ? 'PUT' : 'POST';
+      const res = await fetch(url, { method, headers, body: fd });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error guardando el gasto');
+      modalGasto.hide();
+      showToast('Gasto guardado', 'success');
+      cargarGastos();
+    } catch (error) {
+      showToast(error.message, 'danger');
+    }
+  });
+
+  async function eliminarGasto(id) {
+    if (!confirm('¿Eliminar este gasto?')) return;
+    try {
+      await fetch(`${API_BASE}/api/gastos/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+      cargarGastos();
+    } catch (error) {
+      showToast('No se pudo eliminar el gasto.', 'danger');
+    }
+  }
+
+  async function descargarComprobante(id) {
+    try {
+      const res = await fetch(`${API_BASE}/api/gastos/${id}/comprobante`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('No se pudo descargar');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (error) {
+      showToast('No se pudo abrir el comprobante.', 'danger');
+    }
+  }
+
+  async function exportarCsv() {
+    const desde = document.getElementById('filtroDesde').value;
+    const hasta = document.getElementById('filtroHasta').value;
+    const sede = document.getElementById('filtroSede').value;
+    const params = new URLSearchParams();
+    if (desde) params.set('desde', desde);
+    if (hasta) params.set('hasta', hasta);
+    if (sede) params.set('sucursal_id', sede);
+    try {
+      const res = await fetch(`${API_BASE}/api/gastos/export.csv?${params}`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('No se pudo exportar');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `gastos_${desde || 'inicio'}_${hasta || 'hoy'}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      showToast('No se pudo exportar el CSV.', 'danger');
+    }
+  }
+
+  function cerrarSesion() {
+    logout();
+  }
+
+  async function initSelectorSedeGastos() {
+    if (!esUsuarioGlobal()) {
+      try {
+        const res = await fetch(`${API_BASE}/api/sucursales`, { headers: getAuthHeaders() });
+        const sedes = await res.json();
+        const mia = sedes.find(s => String(s.id) === String(getSucursalId()));
+        const label = document.getElementById('sedeFijaLabelGastos');
+        label.textContent = mia ? mia.nombre : 'Mi sede';
+        label.style.display = '';
+      } catch (e) { /* se queda sin nombre visible */ }
+      return;
+    }
+    document.getElementById('wrapperFiltroSede').style.display = '';
+    try {
+      const res = await fetch(`${API_BASE}/api/sucursales`, { headers: getAuthHeaders() });
+      const sedes = await res.json();
+      const select = document.getElementById('filtroSede');
+      sedes.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s.id;
+        option.textContent = s.nombre;
+        select.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error cargando sucursales:', error);
+    }
+  }
+
+  window.onload = async function () {
+    if (typeof requireAdminPage === 'function' && !requireAdminPage()) return;
+    await initSelectorSedeGastos();
+    cargarCategorias();
+    cargarGastos();
+  };
+</script>
+</body>
+</html>

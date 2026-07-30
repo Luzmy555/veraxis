@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seguimiento de Progreso | Montas Auto Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body>
+<script>
+  if (!localStorage.getItem('sesionActiva')) {
+    window.location.href = 'login.html';
+  }
+</script>
+
+<nav class="navbar navbar-dark bg-dark px-4 py-3">
+  <div class="d-flex align-items-center">
+    <img data-branding="logo" src="assets/logo.png" alt="Logo Montas Auto Academy" width="50" class="me-2" />
+    <div class="text-white">
+      <h1 class="h5 mb-0">Seguimiento de Progreso</h1>
+      <small>Horas completadas y evaluaciones de cada estudiante</small>
+    </div>
+  </div>
+  <div class="ms-auto">
+    <a href="panel.html" class="btn btn-outline-light btn-sm me-2">Inicio</a>
+    <button onclick="cerrarSesion()" class="btn btn-outline-danger btn-sm">Cerrar sesión</button>
+  </div>
+</nav>
+
+<main class="container my-5">
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <input type="text" id="buscarEstudiante" class="form-control" placeholder="Buscar por nombre..." />
+    </div>
+    <div class="col-md-4">
+      <select id="filtroCurso" class="form-select">
+        <option value="">Todos los cursos</option>
+      </select>
+    </div>
+    <div class="col-md-4">
+      <select id="filtroEstado" class="form-select">
+        <option value="">Todos los estados</option>
+        <option value="riesgo">En riesgo</option>
+        <option value="atencion">Necesita atención</option>
+        <option value="aldia">Al día</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle text-center">
+      <thead class="table-dark">
+        <tr>
+          <th class="text-start">Estudiante</th>
+          <th>Curso</th>
+          <th>Instructor</th>
+          <th>Progreso de horas</th>
+          <th>Promedio evaluaciones</th>
+          <th>Última evaluación</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaSeguimiento">
+        <tr><td colspan="8">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/authHelpers.js"></script>
+<script>aplicarBranding();</script>
+<script>
+  let seguimientoData = [];
+
+  function calcularEstado(item) {
+    const horasPct = item.horas_requeridas > 0 ? (item.horas_completadas / item.horas_requeridas) * 100 : 0;
+    const promedio = item.promedio_evaluaciones != null ? parseFloat(item.promedio_evaluaciones) : null;
+
+    if ((promedio != null && promedio < 60) || (item.total_evaluaciones > 0 && horasPct > 50 && promedio != null && promedio < 70)) {
+      return { key: 'riesgo', label: 'En riesgo', badge: 'bg-danger' };
+    }
+    if (promedio == null && item.total_evaluaciones === 0) {
+      return { key: 'atencion', label: 'Sin evaluar', badge: 'bg-secondary' };
+    }
+    if (promedio != null && promedio < 75) {
+      return { key: 'atencion', label: 'Necesita atención', badge: 'bg-warning text-dark' };
+    }
+    return { key: 'aldia', label: 'Al día', badge: 'bg-success' };
+  }
+
+  async function cargarCursosFiltro() {
+    try {
+      const res = await fetch(API_BASE + '/api/cursos', { headers: getAuthHeaders() });
+      const cursos = await res.json();
+      const select = document.getElementById('filtroCurso');
+      cursos.forEach(c => {
+        const option = document.createElement('option');
+        option.value = c.nombre;
+        option.textContent = c.nombre;
+        select.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error cargando cursos:', error);
+    }
+  }
+
+  async function resolverInstructorId() {
+    const role = getUserRole();
+    if (role === 'admin' || role === 'administrador') return null;
+    try {
+      const res = await fetch(API_BASE + '/api/instructores/me', { headers: getAuthHeaders() });
+      if (!res.ok) return undefined; // no vinculado
+      const perfil = await res.json();
+      return perfil.id;
+    } catch (error) {
+      return undefined;
+    }
+  }
+
+  async function cargarSeguimiento() {
+    const tabla = document.getElementById('tablaSeguimiento');
+    tabla.innerHTML = '<tr><td colspan="8">Cargando...</td></tr>';
+
+    const instructorId = await resolverInstructorId();
+    if (instructorId === undefined) {
+      tabla.innerHTML = '<tr><td colspan="8">Tu cuenta todavía no está vinculada a un perfil de instructor. Pídele a un administrador que te vincule desde Instructores.</td></tr>';
+      return;
+    }
+
+    try {
+      const url = instructorId ? `${API_BASE}/api/clientes/seguimiento?instructor_id=${instructorId}` : API_BASE + '/api/clientes/seguimiento';
+      const res = await fetch(url, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      seguimientoData = await res.json();
+      renderTabla();
+    } catch (error) {
+      console.error(error);
+      tabla.innerHTML = '<tr><td colspan="8">Error al cargar el seguimiento.</td></tr>';
+    }
+  }
+
+  function renderTabla() {
+    const tabla = document.getElementById('tablaSeguimiento');
+    const busqueda = document.getElementById('buscarEstudiante').value.toLowerCase();
+    const cursoFiltro = document.getElementById('filtroCurso').value;
+    const estadoFiltro = document.getElementById('filtroEstado').value;
+
+    const filtrados = seguimientoData.filter(item => {
+      if (busqueda && !(item.nombre || '').toLowerCase().includes(busqueda)) return false;
+      if (cursoFiltro && item.curso_actual !== cursoFiltro) return false;
+      if (estadoFiltro && calcularEstado(item).key !== estadoFiltro) return false;
+      return true;
+    });
+
+    if (filtrados.length === 0) {
+      tabla.innerHTML = '<tr><td colspan="8">No hay estudiantes que coincidan con el filtro.</td></tr>';
+      return;
+    }
+
+    tabla.innerHTML = '';
+    filtrados.forEach(item => {
+      const horasPct = item.horas_requeridas > 0 ? Math.min(100, Math.round((item.horas_completadas / item.horas_requeridas) * 100)) : 0;
+      const estado = calcularEstado(item);
+      const promedio = item.promedio_evaluaciones != null ? parseFloat(item.promedio_evaluaciones).toFixed(1) : '—';
+
+      tabla.innerHTML += `
+        <tr>
+          <td class="text-start"><strong>${escapeHtml(item.nombre)}</strong></td>
+          <td>${escapeHtml(item.curso_actual) || '—'}</td>
+          <td>${escapeHtml(item.instructor_nombre) || '—'}</td>
+          <td style="min-width:140px">
+            <div class="progress" style="height:16px">
+              <div class="progress-bar ${horasPct >= 100 ? 'bg-success' : 'bg-info'}" style="width:${horasPct}%">${horasPct}%</div>
+            </div>
+            <div class="small text-muted">${item.horas_completadas || 0} / ${item.horas_requeridas || 0} hrs</div>
+          </td>
+          <td>${promedio}</td>
+          <td>${item.ultima_evaluacion ? new Date(item.ultima_evaluacion).toLocaleDateString('es-DO') : 'Nunca'}</td>
+          <td><span class="badge ${estado.badge}">${estado.label}</span></td>
+          <td><a href="expediente.html?id=${item.id}" class="btn btn-sm btn-outline-primary">Ver expediente</a></td>
+        </tr>`;
+    });
+  }
+
+  document.getElementById('buscarEstudiante').addEventListener('input', renderTabla);
+  document.getElementById('filtroCurso').addEventListener('change', renderTabla);
+  document.getElementById('filtroEstado').addEventListener('change', renderTabla);
+
+  function cerrarSesion() {
+    logout();
+  }
+
+  window.onload = function () {
+    cargarCursosFiltro();
+    cargarSeguimiento();
+  };
+</script>
+</body>
+</html>

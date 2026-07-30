@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Certificado | Montas Auto Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <script>
+    if (!localStorage.getItem('sesionActiva')) {
+      window.location.href = 'login.html';
+    }
+  </script>
+  <style>
+    @media print {
+      .no-print { display: none; }
+      body { background: #fff !important; }
+      @page { size: landscape; margin: 0.5cm; }
+    }
+    body {
+      background-color: #f4f6f8;
+    }
+    .certificado-wrap {
+      max-width: 950px;
+      margin: 40px auto;
+    }
+    .certificado-box {
+      background: #fffdf7;
+      border: 10px solid #0d9488;
+      outline: 2px solid #d4af37;
+      outline-offset: -18px;
+      padding: 60px 70px;
+      text-align: center;
+      position: relative;
+    }
+    .certificado-logo {
+      width: 70px;
+      margin-bottom: 10px;
+    }
+    .certificado-escuela {
+      font-size: 1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 30px;
+    }
+    .certificado-titulo {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #0d9488;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .certificado-subtitulo {
+      font-size: 1rem;
+      color: #64748b;
+      margin-bottom: 30px;
+    }
+    .certificado-nombre {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: #1e293b;
+      border-bottom: 2px solid #d4af37;
+      display: inline-block;
+      padding: 0 20px 10px 20px;
+      margin-bottom: 25px;
+    }
+    .certificado-detalle {
+      font-size: 1.1rem;
+      color: #334155;
+      max-width: 650px;
+      margin: 0 auto 35px auto;
+      line-height: 1.6;
+    }
+    .certificado-firmas {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 60px;
+    }
+    .certificado-firma p {
+      border-top: 1px solid #64748b;
+      display: inline-block;
+      padding-top: 8px;
+      margin: 0;
+      min-width: 220px;
+      font-size: 0.9rem;
+      color: #334155;
+    }
+    .certificado-numero {
+      position: absolute;
+      bottom: 18px;
+      right: 30px;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+    .certificado-fecha {
+      position: absolute;
+      bottom: 18px;
+      left: 30px;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container no-print my-4 d-flex justify-content-between align-items-center" style="max-width:950px">
+  <a id="btnVolver" class="btn btn-secondary btn-sm">&larr; Volver</a>
+  <button onclick="window.print()" class="btn btn-primary btn-sm">
+    <i class="bi bi-printer"></i> Imprimir / Guardar como PDF
+  </button>
+</div>
+
+<div class="certificado-wrap">
+  <div class="certificado-box" id="certificadoBox">
+    <img data-branding="logo" src="assets/logo.png" class="certificado-logo" alt="Logo" />
+    <div class="certificado-escuela" data-branding="nombre">Montas Auto Academy</div>
+    <div class="certificado-titulo">Certificado de Finalización</div>
+    <div class="certificado-subtitulo">Se otorga el presente certificado a</div>
+    <div class="certificado-nombre" id="certNombre">Cargando...</div>
+    <div class="certificado-detalle" id="certDetalle"></div>
+
+    <div class="certificado-firmas">
+      <div class="certificado-firma"><p>Director Académico</p></div>
+      <div class="certificado-firma"><p>Instructor</p></div>
+    </div>
+
+    <div class="certificado-fecha" id="certFecha"></div>
+    <div class="certificado-numero" id="certNumero"></div>
+  </div>
+</div>
+
+<div class="container no-print my-4" style="max-width:950px">
+  <div id="certEstadoAviso"></div>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/authHelpers.js"></script>
+<script>aplicarBranding();</script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const clienteId = params.get('clienteId');
+  const certId = params.get('certId');
+
+  document.getElementById('btnVolver').href = clienteId ? `expediente.html?id=${clienteId}` : 'panel.html';
+
+  async function cargarCertificado() {
+    if (!clienteId || !certId) {
+      document.getElementById('certNombre').textContent = 'Certificado no especificado';
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/api/clientes/${clienteId}/certificados/${certId}`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('No se pudo cargar el certificado');
+      const cert = await res.json();
+
+      document.getElementById('certNombre').textContent = cert.cliente_nombre || '—';
+      document.getElementById('certDetalle').textContent =
+        `Por haber completado satisfactoriamente el curso de "${cert.curso_nombre || 'conducción'}" impartido por Montas Auto Academy, cumpliendo con todos los requisitos académicos y prácticos establecidos.`;
+      document.getElementById('certFecha').textContent = cert.fecha_emision
+        ? `Emitido el ${new Date(cert.fecha_emision).toLocaleDateString('es-DO', { year: 'numeric', month: 'long', day: 'numeric' })}`
+        : '';
+      document.getElementById('certNumero').textContent = cert.numero_certificado ? `N.º ${cert.numero_certificado}` : '';
+
+      if (cert.estado !== 'Emitido') {
+        document.getElementById('certEstadoAviso').innerHTML =
+          '<div class="alert alert-warning">Este certificado todavía está <strong>Pendiente</strong> de emisión. El documento no es válido hasta que se marque como Emitido en el expediente del estudiante.</div>';
+      }
+    } catch (error) {
+      console.error(error);
+      document.getElementById('certNombre').textContent = 'Error al cargar el certificado';
+    }
+  }
+
+  cargarCertificado();
+</script>
+</body>
+</html>

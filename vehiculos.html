@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vehículos | Montas Auto Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body>
+<script>
+  if (!localStorage.getItem('sesionActiva')) {
+    window.location.href = 'login.html';
+  }
+</script>
+
+<nav class="navbar navbar-dark bg-dark px-4 py-3">
+  <div class="d-flex align-items-center">
+    <img data-branding="logo" src="assets/logo.png" alt="Logo Montas Auto Academy" width="50" class="me-2" />
+    <div class="text-white">
+      <h1 class="h5 mb-0">Vehículos</h1>
+      <small>Flota y mantenimiento</small>
+    </div>
+  </div>
+  <div class="ms-auto">
+    <a href="panel.html" class="btn btn-outline-light btn-sm me-2">Inicio</a>
+    <button onclick="cerrarSesion()" class="btn btn-outline-danger btn-sm">Cerrar sesión</button>
+  </div>
+</nav>
+
+<main class="container my-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h5 mb-0">Flota de vehículos</h2>
+    <button class="btn btn-primary" id="btnNuevoVehiculo" onclick="abrirFormularioVehiculo()">+ Nuevo vehículo</button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-hover align-middle text-center">
+      <thead class="table-dark">
+        <tr>
+          <th>Placa</th>
+          <th>Marca / Modelo</th>
+          <th>Año</th>
+          <th>Estado</th>
+          <th>Kilometraje</th>
+          <th>Instructor asignado</th>
+          <th>Mantenimiento</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaVehiculos">
+        <tr><td colspan="8">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Modal: Nuevo/Editar Vehículo -->
+<div class="modal fade" id="modalVehiculo" tabindex="-1" aria-labelledby="modalVehiculoLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <form class="modal-content" id="formVehiculo">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title" id="modalVehiculoLabel">Nuevo vehículo</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Placa *</label>
+            <input id="vehPlaca" class="form-control text-uppercase" required />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Marca *</label>
+            <input id="vehMarca" class="form-control" required />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Modelo</label>
+            <input id="vehModelo" class="form-control" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Año</label>
+            <input id="vehAnio" type="number" class="form-control" min="1980" max="2100" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Color</label>
+            <input id="vehColor" class="form-control" />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Transmisión</label>
+            <select id="vehTransmision" class="form-select">
+              <option value="Manual">Manual</option>
+              <option value="Automática">Automática</option>
+            </select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Estado</label>
+            <select id="vehEstado" class="form-select">
+              <option value="Activo">Activo</option>
+              <option value="En mantenimiento">En mantenimiento</option>
+              <option value="Fuera de servicio">Fuera de servicio</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Kilometraje actual</label>
+            <input id="vehKilometraje" type="number" class="form-control" min="0" value="0" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Fecha de adquisición</label>
+            <input id="vehFechaAdquisicion" type="date" class="form-control" />
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Instructor asignado</label>
+            <select id="vehInstructorId" class="form-select">
+              <option value="">Sin asignar</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Sucursal</label>
+            <select id="vehSucursalId" class="form-select">
+              <option value="">Sin asignar</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Notas</label>
+            <textarea id="vehNotas" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-primary">Guardar vehículo</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Mantenimientos del vehículo -->
+<div class="modal fade" id="modalMantenimientos" tabindex="-1" aria-labelledby="modalMantenimientosLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title" id="modalMantenimientosLabel">Mantenimientos</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" style="max-height: 75vh; overflow-y: auto;">
+        <form id="formMantenimiento" class="border rounded p-3 mb-3 bg-light">
+          <div class="row g-2">
+            <div class="col-md-4">
+              <label class="form-label small">Tipo *</label>
+              <select id="mantTipo" class="form-select form-select-sm" required>
+                <option value="Cambio de aceite">Cambio de aceite</option>
+                <option value="Frenos">Frenos</option>
+                <option value="Llantas">Llantas</option>
+                <option value="Preventivo">Preventivo</option>
+                <option value="Correctivo">Correctivo</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Fecha *</label>
+              <input id="mantFecha" type="date" class="form-control form-control-sm" required />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Kilometraje</label>
+              <input id="mantKilometraje" type="number" class="form-control form-control-sm" min="0" />
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Costo (RD$)</label>
+              <input id="mantCosto" type="number" class="form-control form-control-sm" min="0" step="0.01" />
+            </div>
+            <div class="col-md-8">
+              <label class="form-label small">Realizado por (taller/mecánico)</label>
+              <input id="mantRealizadoPor" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Próximo mantenimiento (km)</label>
+              <input id="mantProximoKm" type="number" class="form-control form-control-sm" min="0" />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small">Próximo mantenimiento (fecha)</label>
+              <input id="mantProximoFecha" type="date" class="form-control form-control-sm" />
+            </div>
+            <div class="col-12">
+              <label class="form-label small">Descripción</label>
+              <textarea id="mantDescripcion" class="form-control form-control-sm" rows="2"></textarea>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-sm btn-success">Registrar mantenimiento</button>
+            </div>
+          </div>
+        </form>
+        <h6 class="text-muted small">Historial</h6>
+        <div id="mantenimientosContent"><p class="text-muted small">Cargando...</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index:1055">
+  <div id="toasts"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/authHelpers.js"></script>
+<script>aplicarBranding();</script>
+<script>
+  let vehiculoEditId = null;
+  let vehiculoMantenimientoActualId = null;
+  const modalVehiculo = new bootstrap.Modal(document.getElementById('modalVehiculo'));
+  const modalMantenimientos = new bootstrap.Modal(document.getElementById('modalMantenimientos'));
+
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toasts');
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-bg-${type} border-0 mb-2`;
+    toast.role = 'alert';
+    toast.innerHTML = `<div class="d-flex"><div class="toast-body">${escapeHtml(message)}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+    container.appendChild(toast);
+    new bootstrap.Toast(toast, { delay: 4000 }).show();
+  }
+
+  function getEstadoBadgeClass(estado) {
+    if (estado === 'Activo') return 'bg-success';
+    if (estado === 'En mantenimiento') return 'bg-warning text-dark';
+    if (estado === 'Fuera de servicio') return 'bg-danger';
+    return 'bg-secondary';
+  }
+
+  function mantenimientoVencido(v) {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const porKm = v.proximo_mantenimiento_km != null && v.kilometraje_actual != null && v.kilometraje_actual >= v.proximo_mantenimiento_km;
+    const porFecha = v.proximo_mantenimiento_fecha && v.proximo_mantenimiento_fecha.slice(0, 10) <= hoy;
+    return porKm || porFecha;
+  }
+
+  async function cargarInstructoresSelect() {
+    const select = document.getElementById('vehInstructorId');
+    try {
+      const res = await fetch(API_BASE + '/api/instructores', { headers: getAuthHeaders() });
+      const instructores = await res.json();
+      select.innerHTML = '<option value="">Sin asignar</option>';
+      instructores.forEach(i => {
+        const option = document.createElement('option');
+        option.value = i.id;
+        option.textContent = i.nombre;
+        select.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error cargando instructores:', error);
+    }
+  }
+
+  async function cargarSucursalesSelect() {
+    const select = document.getElementById('vehSucursalId');
+    try {
+      const res = await fetch(API_BASE + '/api/sucursales', { headers: getAuthHeaders() });
+      const sedes = await res.json();
+      select.innerHTML = '<option value="">Sin asignar</option>';
+      sedes.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s.id;
+        option.textContent = s.nombre;
+        select.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error cargando sucursales:', error);
+    }
+  }
+
+  async function cargarVehiculos() {
+    const tabla = document.getElementById('tablaVehiculos');
+    tabla.innerHTML = '<tr><td colspan="8">Cargando...</td></tr>';
+
+    try {
+      const res = await fetch(API_BASE + '/api/vehiculos', { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const vehiculos = await res.json();
+
+      if (!Array.isArray(vehiculos) || vehiculos.length === 0) {
+        tabla.innerHTML = '<tr><td colspan="8">No hay vehículos registrados.</td></tr>';
+        return;
+      }
+
+      tabla.innerHTML = '';
+      vehiculos.forEach(v => {
+        const vencido = mantenimientoVencido(v);
+        const mantInfo = v.ultimo_mantenimiento_fecha
+          ? `Último: ${new Date(v.ultimo_mantenimiento_fecha).toLocaleDateString('es-DO')}`
+          : 'Sin registros';
+        tabla.innerHTML += `
+          <tr>
+            <td><strong>${escapeHtml(v.placa)}</strong></td>
+            <td>${escapeHtml(v.marca)} ${escapeHtml(v.modelo) || ''}</td>
+            <td>${v.anio || '-'}</td>
+            <td><span class="badge ${getEstadoBadgeClass(v.estado)}">${escapeHtml(v.estado)}</span></td>
+            <td>${(v.kilometraje_actual || 0).toLocaleString('es-DO')} km</td>
+            <td>${escapeHtml(v.instructor_nombre) || '<span class="text-muted">Sin asignar</span>'}</td>
+            <td>
+              ${vencido ? '<span class="badge bg-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Vencido</span>' : '<span class="badge bg-success">Al día</span>'}
+              <div class="small text-muted">${mantInfo}</div>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-info me-1 mb-1" onclick="abrirMantenimientos(${v.id}, '${encodeURIComponent(v.placa)}')">Mantenimiento</button>
+              ${typeof isAdmin === 'function' && isAdmin() ? `
+                <button class="btn btn-sm btn-warning me-1 mb-1" onclick="editarVehiculo(${v.id})">Editar</button>
+                <button class="btn btn-sm btn-danger mb-1" onclick="eliminarVehiculo(${v.id})">Eliminar</button>
+              ` : ''}
+            </td>
+          </tr>`;
+      });
+    } catch (error) {
+      console.error(error);
+      tabla.innerHTML = '<tr><td colspan="8">Error al cargar los vehículos.</td></tr>';
+    }
+  }
+
+  async function abrirFormularioVehiculo() {
+    vehiculoEditId = null;
+    document.getElementById('modalVehiculoLabel').textContent = 'Nuevo vehículo';
+    document.getElementById('formVehiculo').reset();
+    document.getElementById('vehEstado').value = 'Activo';
+    document.getElementById('vehTransmision').value = 'Manual';
+    document.getElementById('vehKilometraje').value = 0;
+    await Promise.all([cargarInstructoresSelect(), cargarSucursalesSelect()]);
+    modalVehiculo.show();
+  }
+
+  async function editarVehiculo(id) {
+    try {
+      const res = await fetch(`${API_BASE}/api/vehiculos/${id}`, { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const v = await res.json();
+      vehiculoEditId = id;
+      document.getElementById('modalVehiculoLabel').textContent = `Editar vehículo — ${v.placa}`;
+      document.getElementById('vehPlaca').value = v.placa || '';
+      document.getElementById('vehMarca').value = v.marca || '';
+      document.getElementById('vehModelo').value = v.modelo || '';
+      document.getElementById('vehAnio').value = v.anio || '';
+      document.getElementById('vehColor').value = v.color || '';
+      document.getElementById('vehTransmision').value = v.transmision || 'Manual';
+      document.getElementById('vehEstado').value = v.estado || 'Activo';
+      document.getElementById('vehKilometraje').value = v.kilometraje_actual || 0;
+      document.getElementById('vehFechaAdquisicion').value = v.fecha_adquisicion ? v.fecha_adquisicion.slice(0, 10) : '';
+      document.getElementById('vehNotas').value = v.notas || '';
+      await Promise.all([cargarInstructoresSelect(), cargarSucursalesSelect()]);
+      document.getElementById('vehInstructorId').value = v.instructor_id || '';
+      document.getElementById('vehSucursalId').value = v.sucursal_id || '';
+      modalVehiculo.show();
+    } catch (error) {
+      console.error(error);
+      showToast('No se pudo cargar el vehículo para editar.', 'danger');
+    }
+  }
+
+  document.getElementById('formVehiculo').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const payload = {
+      placa: document.getElementById('vehPlaca').value.trim(),
+      marca: document.getElementById('vehMarca').value.trim(),
+      modelo: document.getElementById('vehModelo').value.trim(),
+      anio: document.getElementById('vehAnio').value || null,
+      color: document.getElementById('vehColor').value.trim(),
+      transmision: document.getElementById('vehTransmision').value,
+      estado: document.getElementById('vehEstado').value,
+      kilometraje_actual: document.getElementById('vehKilometraje').value || 0,
+      fecha_adquisicion: document.getElementById('vehFechaAdquisicion').value || null,
+      instructor_id: document.getElementById('vehInstructorId').value || null,
+      sucursal_id: document.getElementById('vehSucursalId').value || null,
+      notas: document.getElementById('vehNotas').value.trim()
+    };
+
+    try {
+      const url = vehiculoEditId ? `${API_BASE}/api/vehiculos/${vehiculoEditId}` : API_BASE + '/api/vehiculos';
+      const method = vehiculoEditId ? 'PUT' : 'POST';
+      const res = await fetch(url, { method, headers: getAuthHeaders(), body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error guardando vehículo');
+      modalVehiculo.hide();
+      showToast('Vehículo guardado correctamente', 'success');
+      cargarVehiculos();
+    } catch (error) {
+      console.error(error);
+      showToast(error.message, 'danger');
+    }
+  });
+
+  async function eliminarVehiculo(id) {
+    if (!confirm('¿Eliminar este vehículo? También se borrará su historial de mantenimientos.')) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/vehiculos/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('No se pudo eliminar');
+      cargarVehiculos();
+    } catch (error) {
+      console.error(error);
+      showToast('No se pudo eliminar el vehículo.', 'danger');
+    }
+  }
+
+  async function abrirMantenimientos(vehiculoId, placaEncoded) {
+    vehiculoMantenimientoActualId = vehiculoId;
+    document.getElementById('modalMantenimientosLabel').textContent = `Mantenimientos — ${decodeURIComponent(placaEncoded)}`;
+    document.getElementById('formMantenimiento').reset();
+    document.getElementById('mantFecha').value = new Date().toISOString().slice(0, 10);
+    await cargarMantenimientos(vehiculoId);
+    modalMantenimientos.show();
+  }
+
+  async function cargarMantenimientos(vehiculoId) {
+    const container = document.getElementById('mantenimientosContent');
+    container.innerHTML = '<p class="text-muted small">Cargando...</p>';
+    try {
+      const res = await fetch(`${API_BASE}/api/vehiculos/${vehiculoId}/mantenimientos`, { headers: getAuthHeaders() });
+      const mantenimientos = await res.json();
+      if (!Array.isArray(mantenimientos) || mantenimientos.length === 0) {
+        container.innerHTML = '<p class="text-muted small">No hay mantenimientos registrados.</p>';
+        return;
+      }
+      const list = document.createElement('div');
+      list.className = 'list-group';
+      mantenimientos.forEach(m => {
+        const el = document.createElement('div');
+        el.className = 'list-group-item d-flex justify-content-between align-items-start';
+        el.innerHTML = `
+          <div>
+            <strong>${escapeHtml(m.tipo)}</strong> · ${new Date(m.fecha).toLocaleDateString('es-DO')}
+            ${m.kilometraje != null ? ` · ${Number(m.kilometraje).toLocaleString('es-DO')} km` : ''}
+            ${m.costo ? ` · RD$ ${parseFloat(m.costo).toFixed(2)}` : ''}
+            <div class="small text-muted mt-1">${escapeHtml(m.descripcion) || ''}</div>
+            ${m.realizado_por ? `<div class="small text-muted">Realizado por: ${escapeHtml(m.realizado_por)}</div>` : ''}
+            ${(m.proximo_km || m.proximo_fecha) ? `<div class="small text-muted">Próximo: ${m.proximo_km ? Number(m.proximo_km).toLocaleString('es-DO') + ' km' : ''} ${m.proximo_fecha ? new Date(m.proximo_fecha).toLocaleDateString('es-DO') : ''}</div>` : ''}
+            <div class="small text-muted">Registrado por: ${escapeHtml(m.registrado_por_nombre) || '—'}</div>
+          </div>
+          <div>${typeof isAdmin === 'function' && isAdmin() ? `<button class="btn btn-sm btn-outline-danger" onclick="eliminarMantenimiento(${vehiculoId}, ${m.id})">Eliminar</button>` : ''}</div>
+        `;
+        list.appendChild(el);
+      });
+      container.innerHTML = '';
+      container.appendChild(list);
+    } catch (error) {
+      console.error(error);
+      container.innerHTML = '<p class="text-danger small">Error al cargar el historial.</p>';
+    }
+  }
+
+  document.getElementById('formMantenimiento').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const payload = {
+      tipo: document.getElementById('mantTipo').value,
+      fecha: document.getElementById('mantFecha').value,
+      kilometraje: document.getElementById('mantKilometraje').value || null,
+      costo: document.getElementById('mantCosto').value || 0,
+      realizado_por: document.getElementById('mantRealizadoPor').value.trim(),
+      proximo_km: document.getElementById('mantProximoKm').value || null,
+      proximo_fecha: document.getElementById('mantProximoFecha').value || null,
+      descripcion: document.getElementById('mantDescripcion').value.trim()
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/api/vehiculos/${vehiculoMantenimientoActualId}/mantenimientos`, {
+        method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error registrando mantenimiento');
+      document.getElementById('formMantenimiento').reset();
+      document.getElementById('mantFecha').value = new Date().toISOString().slice(0, 10);
+      showToast('Mantenimiento registrado', 'success');
+      await cargarMantenimientos(vehiculoMantenimientoActualId);
+      cargarVehiculos();
+    } catch (error) {
+      console.error(error);
+      showToast(error.message, 'danger');
+    }
+  });
+
+  async function eliminarMantenimiento(vehiculoId, mantId) {
+    if (!confirm('¿Eliminar este registro de mantenimiento?')) return;
+    try {
+      await fetch(`${API_BASE}/api/vehiculos/${vehiculoId}/mantenimientos/${mantId}`, { method: 'DELETE', headers: getAuthHeaders() });
+      await cargarMantenimientos(vehiculoId);
+      cargarVehiculos();
+    } catch (error) {
+      console.error(error);
+      showToast('No se pudo eliminar el registro.', 'danger');
+    }
+  }
+
+  function cerrarSesion() {
+    logout();
+  }
+
+  window.onload = function () {
+    const role = (typeof getUserRole === 'function') ? getUserRole() : '';
+    if (!['admin', 'administrador', 'instructor'].includes(role)) {
+      alert('Acceso no autorizado.');
+      window.location.href = 'panel.html';
+      return;
+    }
+    if (typeof isAdmin === 'function' && !isAdmin()) {
+      document.getElementById('btnNuevoVehiculo').classList.add('d-none');
+    }
+    cargarVehiculos();
+  };
+</script>
+</body>
+</html>

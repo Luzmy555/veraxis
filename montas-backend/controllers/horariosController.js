@@ -1,13 +1,51 @@
 const pool = require('../db');
 
-// Obtener todos los horarios
-exports.obtenerHorarios = async (req, res) => {
+// Resuelve el horario propio del estudiante logueado (nunca confiar en un cliente_id de la URL).
+exports.getMisHorarios = async (req, res) => {
   try {
+    const miCliente = await pool.query('SELECT id FROM clientes WHERE usuario_id = $1', [req.user.id]);
+    if (miCliente.rowCount === 0) {
+      return res.status(404).json({ error: 'Tu cuenta todavía no está vinculada a ningún expediente.' });
+    }
     const result = await pool.query(
       `SELECT h.*, c.nombre AS nombre_cliente
        FROM horarios h
        LEFT JOIN clientes c ON c.id = h.cliente_id
-       ORDER BY h.created_at ASC`
+       WHERE h.cliente_id = $1
+       ORDER BY h.created_at ASC`,
+      [miCliente.rows[0].id]
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error obteniendo mi horario:', error);
+    res.status(500).json({ error: 'No se pudo obtener tu horario.' });
+  }
+};
+
+// Obtener todos los horarios (opcionalmente filtrados por instructor y/o día)
+exports.obtenerHorarios = async (req, res) => {
+  try {
+    const { instructor_id, dia } = req.query;
+    const conditions = [];
+    const params = [];
+
+    if (instructor_id) {
+      params.push(instructor_id);
+      conditions.push(`c.instructor_id = $${params.length}`);
+    }
+    if (dia) {
+      params.push(dia);
+      conditions.push(`h.dia = $${params.length}`);
+    }
+
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const result = await pool.query(
+      `SELECT h.*, c.nombre AS nombre_cliente
+       FROM horarios h
+       LEFT JOIN clientes c ON c.id = h.cliente_id
+       ${where}
+       ORDER BY h.created_at ASC`,
+      params
     );
     res.json(result.rows);
   } catch (error) {

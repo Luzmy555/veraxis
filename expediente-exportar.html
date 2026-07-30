@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exportar Expediente | Montas Auto Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <script src="js/config.js"></script>
+  <script>
+    if (!localStorage.getItem('sesionActiva')) {
+      window.location.href = 'login.html';
+    }
+  </script>
+  <style>
+    body { background-color: #f8f9fa; }
+    .hoja { max-width: 900px; margin: 30px auto; padding: 40px; background: #fff; border: 1px solid #dee2e6; border-radius: 8px; }
+    .hoja h2 { font-size: 1.1rem; border-bottom: 2px solid #333; padding-bottom: 6px; margin-top: 2rem; }
+    .hoja table { font-size: 0.9rem; }
+    @media print {
+      .no-print { display: none !important; }
+      .hoja { border: none; margin: 0; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container no-print my-3 text-end">
+  <button onclick="window.print()" class="btn btn-primary">Imprimir / Guardar como PDF</button>
+</div>
+
+<div class="hoja" id="hoja">
+  <div class="d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center">
+      <img data-branding="logo" src="assets/logo.png" alt="Logo" width="50" class="me-3" />
+      <div>
+        <h1 class="h5 mb-0" data-branding="nombre">Montas Auto Academy</h1>
+        <small>Expediente del estudiante</small>
+      </div>
+    </div>
+    <div class="text-end small text-muted">Exportado el <span id="fechaExportacion"></span></div>
+  </div>
+
+  <h2>Información General</h2>
+  <div id="infoGeneral"></div>
+
+  <h2>Pagos</h2>
+  <div id="pagosContent"></div>
+
+  <h2>Asistencias</h2>
+  <div id="asistenciasContent"></div>
+
+  <h2>Evaluaciones</h2>
+  <div id="evaluacionesContent"></div>
+
+  <h2>Exámenes</h2>
+  <div id="examenesContent"></div>
+
+  <h2>Certificados</h2>
+  <div id="certificadosContent"></div>
+</div>
+
+<script src="js/authHelpers.js"></script>
+<script>
+  function formatoMoneda(num) {
+    return `RD$ ${(parseFloat(num) || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  async function fetchJson(url) {
+    const res = await fetch(url, { headers: getAuthHeaders() });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }
+
+  async function cargarExpediente() {
+    const id = new URLSearchParams(window.location.search).get('id');
+    if (!id) { document.getElementById('hoja').innerHTML = '<p class="text-danger">ID de cliente requerido.</p>'; return; }
+
+    document.getElementById('fechaExportacion').textContent = new Date().toLocaleString('es-DO');
+
+    try {
+      const cliente = await fetchJson(`${API_BASE}/api/clientes/${id}`);
+      document.title = `Expediente de ${cliente.nombre} | Montas Auto Academy`;
+      document.getElementById('infoGeneral').innerHTML = `
+        <p><strong>Nombre:</strong> ${escapeHtml(cliente.nombre) || '—'}</p>
+        <p><strong>Cédula:</strong> ${escapeHtml(cliente.cedula) || '—'} · <strong>Teléfono:</strong> ${escapeHtml(cliente.telefono) || '—'}</p>
+        <p><strong>Correo:</strong> ${escapeHtml(cliente.email) || '—'}</p>
+        <p><strong>Dirección:</strong> ${escapeHtml(cliente.direccion) || '—'} ${escapeHtml(cliente.ciudad) || ''}</p>
+        <p><strong>Contacto de emergencia:</strong> ${escapeHtml(cliente.contacto_emergencia) || '—'} ${cliente.telefono_emergencia ? '· ' + escapeHtml(cliente.telefono_emergencia) : ''}</p>
+        <p><strong>Curso:</strong> ${escapeHtml(cliente.curso_nombre || cliente.curso_actual) || '—'} · <strong>Instructor:</strong> ${escapeHtml(cliente.instructor_nombre) || 'Sin asignar'}</p>
+        <p><strong>Estado:</strong> ${escapeHtml(cliente.estado_cliente) || '—'} · <strong>Horas:</strong> ${cliente.horas_completadas || 0} / ${cliente.horas_requeridas || 0}</p>
+        <p><strong>Precio del curso:</strong> ${formatoMoneda(cliente.precio_total)} · <strong>Saldo pendiente:</strong> ${formatoMoneda(cliente.saldo_pendiente)}</p>
+      `;
+
+      const [pagos, asistencias, evaluaciones, examenes, certificados] = await Promise.all([
+        fetchJson(`${API_BASE}/api/pagos/cliente/${id}`),
+        fetchJson(`${API_BASE}/api/asistencias/cliente/${id}`),
+        fetchJson(`${API_BASE}/api/clientes/${id}/evaluaciones`),
+        fetchJson(`${API_BASE}/api/clientes/${id}/examenes`),
+        fetchJson(`${API_BASE}/api/clientes/${id}/certificados`)
+      ]);
+
+      document.getElementById('pagosContent').innerHTML = pagos.length ? `
+        <table class="table table-sm table-bordered">
+          <thead><tr><th>Fecha</th><th>Concepto</th><th>Monto</th><th>Estado</th></tr></thead>
+          <tbody>${pagos.map(p => `<tr><td>${new Date(p.fecha).toLocaleDateString('es-DO')}</td><td>${escapeHtml(p.concepto)}</td><td>${formatoMoneda(p.monto)}</td><td>${escapeHtml(p.estado)}</td></tr>`).join('')}</tbody>
+        </table>` : '<p class="text-muted">Sin pagos registrados.</p>';
+
+      document.getElementById('asistenciasContent').innerHTML = asistencias.length ? `
+        <ul>${asistencias.map(a => `<li>${new Date(a.fecha).toLocaleString('es-DO')} — ${escapeHtml(a.estado) || (a.asistio ? 'Presente' : 'Ausente')}</li>`).join('')}</ul>` : '<p class="text-muted">Sin asistencias registradas.</p>';
+
+      document.getElementById('evaluacionesContent').innerHTML = evaluaciones.length ? `
+        <table class="table table-sm table-bordered">
+          <thead><tr><th>Fecha</th><th>Tipo</th><th>Calificación</th><th>Comentarios</th></tr></thead>
+          <tbody>${evaluaciones.map(e => `<tr><td>${new Date(e.fecha).toLocaleDateString('es-DO')}</td><td>${escapeHtml(e.tipo)}</td><td>${e.calificacion ?? '—'}</td><td>${escapeHtml(e.comentarios) || '—'}</td></tr>`).join('')}</tbody>
+        </table>` : '<p class="text-muted">Sin evaluaciones registradas.</p>';
+
+      document.getElementById('examenesContent').innerHTML = examenes.length ? `
+        <table class="table table-sm table-bordered">
+          <thead><tr><th>Fecha</th><th>Tipo</th><th>Intento</th><th>Resultado</th><th>Calificación</th></tr></thead>
+          <tbody>${examenes.map(e => `<tr><td>${new Date(e.fecha).toLocaleDateString('es-DO')}</td><td>${escapeHtml(e.tipo)}</td><td>${e.intento_numero}</td><td>${escapeHtml(e.resultado)}</td><td>${e.calificacion ?? '—'}</td></tr>`).join('')}</tbody>
+        </table>` : '<p class="text-muted">Sin exámenes registrados.</p>';
+
+      document.getElementById('certificadosContent').innerHTML = certificados.length ? `
+        <ul>${certificados.map(c => `<li>${escapeHtml(c.numero_certificado || 'Sin número')} — ${escapeHtml(c.estado)} ${c.fecha_emision ? '· ' + new Date(c.fecha_emision).toLocaleDateString('es-DO') : ''}</li>`).join('')}</ul>` : '<p class="text-muted">Sin certificados emitidos.</p>';
+
+    } catch (error) {
+      console.error('Error exportando expediente:', error);
+      document.getElementById('hoja').innerHTML += '<p class="text-danger">No se pudo cargar el expediente completo.</p>';
+    }
+  }
+
+  aplicarBranding();
+  cargarExpediente();
+</script>
+
+</body>
+</html>

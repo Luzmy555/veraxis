@@ -4,6 +4,8 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const controller = require('../controllers/clienteDocumentosController');
+const { fileFilter, MAX_FILE_SIZE } = require('../middlewares/uploadValidation');
+const { requireOwnClienteOrStaff } = require('../middlewares/clienteAccessMiddleware');
 
 const uploadsRoot = path.join(__dirname, '..', 'uploads', 'clientes');
 if (!fs.existsSync(uploadsRoot)) fs.mkdirSync(uploadsRoot, { recursive: true });
@@ -21,12 +23,12 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage });
+const upload = multer({ storage, limits: { fileSize: MAX_FILE_SIZE }, fileFilter });
 
 router.post('/:id/documentos', upload.single('file'), controller.subirDocumento);
-router.get('/:id/documentos', controller.listarDocumentos);
-router.get('/:id/documentos/:docId/download', controller.descargarDocumento);
-router.get('/:id/documentos/:docId', controller.descargarDocumento);
+router.get('/:id/documentos', requireOwnClienteOrStaff('id'), controller.listarDocumentos);
+router.get('/:id/documentos/:docId/download', requireOwnClienteOrStaff('id'), controller.descargarDocumento);
+router.get('/:id/documentos/:docId', requireOwnClienteOrStaff('id'), controller.descargarDocumento);
 router.delete('/:id/documentos/:docId', controller.eliminarDocumento);
 
 module.exports = router;

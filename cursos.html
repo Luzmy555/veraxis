@@ -15,7 +15,7 @@
 
 <nav class="navbar navbar-dark bg-dark px-4 py-3">
   <div class="d-flex align-items-center">
-    <img src="assets/logo.png" alt="Logo Montas Auto Academy" width="50" class="me-2" />
+    <img data-branding="logo" src="assets/logo.png" alt="Logo Montas Auto Academy" width="50" class="me-2" />
     <div class="text-white">
       <h1 class="h5 mb-0">Cursos</h1>
       <small>Administra los cursos de Montas Auto Academy</small>
@@ -74,6 +74,14 @@
             <input id="cursoDuracion" type="number" class="form-control" />
           </div>
           <div class="col-md-6">
+            <label class="form-label">Horas teóricas</label>
+            <input id="cursoHorasTeoricas" type="number" min="0" class="form-control" value="0" />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Horas prácticas</label>
+            <input id="cursoHorasPracticas" type="number" min="0" class="form-control" value="0" />
+          </div>
+          <div class="col-md-6">
             <label class="form-label">Activo</label>
             <select id="cursoActivo" class="form-select">
               <option value="true">Sí</option>
@@ -95,7 +103,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
 <script src="js/authHelpers.js"></script>
+<script>aplicarBranding();</script>
 <script>
   let cursoEditId = null;
   const modalCurso = new bootstrap.Modal(document.getElementById('modalCurso'));
@@ -105,7 +115,7 @@
     tabla.innerHTML = '<tr><td colspan="6">Cargando...</td></tr>';
 
     try {
-      const res = await fetch('http://localhost:4000/api/cursos', {
+      const res = await fetch(API_BASE + '/api/cursos', {
         headers: getAuthHeaders()
       });
       const cursos = await res.json();
@@ -119,7 +129,7 @@
       for (const c of cursos) {
         let instructoresText = 'Sin asignar';
         try {
-          const resInstr = await fetch(`http://localhost:4000/api/cursos/${c.id}/instructores`, {
+          const resInstr = await fetch(`${API_BASE}/api/cursos/${c.id}/instructores`, {
             headers: getAuthHeaders()
           });
           const instructores = await resInstr.json();
@@ -132,10 +142,10 @@
 
         tabla.innerHTML += `
           <tr>
-            <td>${c.nombre}</td>
+            <td>${escapeHtml(c.nombre)}</td>
             <td>${c.duracion_semanas || '-'} </td>
             <td>RD$ ${parseFloat(c.precio || 0).toFixed(2)}</td>
-            <td><small>${instructoresText}</small></td>
+            <td><small>${escapeHtml(instructoresText)}</small></td>
             <td>${c.activo ? 'Activo' : 'Inactivo'}</td>
             <td>
               <button class="btn btn-sm btn-warning me-1" onclick="editarCurso(${c.id})">Editar</button>
@@ -159,7 +169,7 @@
 
   async function editarCurso(id) {
     try {
-      const res = await fetch(`http://localhost:4000/api/cursos/${id}`, {
+      const res = await fetch(`${API_BASE}/api/cursos/${id}`, {
         headers: getAuthHeaders()
       });
       const curso = await res.json();
@@ -168,6 +178,8 @@
       document.getElementById('cursoNombre').value = curso.nombre || '';
       document.getElementById('cursoPrecio').value = curso.precio || 0;
       document.getElementById('cursoDuracion').value = curso.duracion_semanas || '';
+      document.getElementById('cursoHorasTeoricas').value = curso.horas_teoricas || 0;
+      document.getElementById('cursoHorasPracticas').value = curso.horas_practicas || 0;
       document.getElementById('cursoActivo').value = curso.activo ? 'true' : 'false';
       document.getElementById('cursoDescripcion').value = curso.descripcion || '';
       modalCurso.show();
@@ -180,7 +192,7 @@
   async function eliminarCurso(id) {
     if (!confirm('¿Deseas eliminar este curso?')) return;
     try {
-      await fetch(`http://localhost:4000/api/cursos/${id}`, {
+      await fetch(`${API_BASE}/api/cursos/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders()
       });
@@ -198,12 +210,14 @@
       nombre: document.getElementById('cursoNombre').value.trim(),
       descripcion: document.getElementById('cursoDescripcion').value.trim(),
       duracion_semanas: parseInt(document.getElementById('cursoDuracion').value, 10) || null,
+      horas_teoricas: parseInt(document.getElementById('cursoHorasTeoricas').value, 10) || 0,
+      horas_practicas: parseInt(document.getElementById('cursoHorasPracticas').value, 10) || 0,
       precio: parseFloat(document.getElementById('cursoPrecio').value) || 0,
       activo: document.getElementById('cursoActivo').value === 'true'
     };
 
     try {
-      const url = cursoEditId ? `http://localhost:4000/api/cursos/${cursoEditId}` : 'http://localhost:4000/api/cursos';
+      const url = cursoEditId ? `${API_BASE}/api/cursos/${cursoEditId}` : API_BASE + '/api/cursos';
       const method = cursoEditId ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,

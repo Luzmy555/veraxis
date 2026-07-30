@@ -2,6 +2,10 @@ const pool = require('../db');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const { registrarAuditoria } = require('./auditoriaController');
+const { resolverFiltroSucursal } = require('../utils/sucursal');
 
 const uploadDir = path.join(__dirname, '..', 'uploads', 'clientes');
 
@@ -73,9 +77,96 @@ function baseClientQuery() {
 
 exports.upload = upload;
 
+// Resuelve el expediente del estudiante logueado (nunca confiar en un id de la URL para esto).
+exports.getMiExpediente = async (req, res) => {
+  try {
+    const result = await pool.query(`${baseClientQuery()} WHERE c.usuario_id = $1`, [req.user.id]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Tu cuenta todavía no está vinculada a ningún expediente. Pídele a un administrador que te dé acceso desde tu expediente.' });
+    }
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error cargando mi expediente:', error);
+    res.status(500).json({ error: 'No se pudo cargar tu expediente.' });
+  }
+};
+
+function generarUsuarioEstudiante(cliente) {
+  const base = (cliente.cedula || cliente.nombre || 'estudiante')
+    .toString().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]/g, '');
+  return `${base || 'estudiante'}${cliente.id}`;
+}
+
+// Crea (o devuelve, si ya existe) el acceso al portal del estudiante para este cliente.
+exports.crearAccesoPortal = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const cliente = await pool.query('SELECT id, nombre, cedula, usuario_id FROM clientes WHERE id = $1', [id]);
+    if (cliente.rowCount === 0) return res.status(404).json({ error: 'Cliente no encontrado' });
+
+    if (cliente.rows[0].usuario_id) {
+      const usuarioExistente = await pool.query('SELECT usuario FROM usuarios WHERE id = $1', [cliente.rows[0].usuario_id]);
+      return res.json({ yaExistia: true, usuario: usuarioExistente.rows[0]?.usuario || null });
+    }
+
+    const usuario = generarUsuarioEstudiante(cliente.rows[0]);
+    const claveTemporal = crypto.randomBytes(6).toString('base64url');
+    const hash = await bcrypt.hash(claveTemporal, 10);
+
+    const nuevoUsuario = await pool.query(
+      `INSERT INTO usuarios (usuario, clave, rol, nombre_completo, estado)
+       VALUES ($1, $2, 'estudiante', $3, 'Activo') RETURNING id`,
+      [usuario, hash, cliente.rows[0].nombre]
+    );
+    await pool.query('UPDATE clientes SET usuario_id = $1 WHERE id = $2', [nuevoUsuario.rows[0].id, id]);
+
+    await registrarAuditoria(req, 'Dio acceso al portal del estudiante', `${cliente.rows[0].nombre} (usuario: ${usuario})`);
+    res.status(201).json({ yaExistia: false, usuario, clave_temporal: claveTemporal });
+  } catch (error) {
+    console.error('Error creando acceso al portal:', error);
+    res.status(500).json({ error: 'No se pudo crear el acceso al portal.' });
+  }
+};
+
+exports.getSeguimiento = async (req, res) => {
+  try {
+    const { instructor_id } = req.query;
+    const params = [];
+    let where = '';
+    if (instructor_id) {
+      params.push(instructor_id);
+      where = 'WHERE c.instructor_id = $1';
+    }
+    const result = await pool.query(`
+      SELECT c.id, c.nombre, c.curso_actual, c.curso_id, c.instructor_id, c.estado_cliente,
+             c.horas_completadas, c.horas_requeridas,
+             i.nombre AS instructor_nombre,
+             (SELECT AVG(calificacion) FROM cliente_evaluaciones WHERE cliente_id = c.id AND calificacion IS NOT NULL) AS promedio_evaluaciones,
+             (SELECT COUNT(*) FROM cliente_evaluaciones WHERE cliente_id = c.id) AS total_evaluaciones,
+             (SELECT MAX(fecha) FROM cliente_evaluaciones WHERE cliente_id = c.id) AS ultima_evaluacion
+      FROM clientes c
+      LEFT JOIN instructores i ON c.instructor_id = i.id
+      ${where}
+      ORDER BY c.nombre
+    `, params);
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error cargando seguimiento:', error);
+    res.status(500).json({ error: 'No se pudo cargar el seguimiento de progreso.' });
+  }
+};
+
 exports.getClientes = async (req, res) => {
   try {
-    const result = await pool.query(`${baseClientQuery()} ORDER BY c.id DESC`);
+    const { instructor_id } = req.query;
+    const sucursalId = resolverFiltroSucursal(req);
+    const conditions = [];
+    const params = [];
+    if (instructor_id) { params.push(instructor_id); conditions.push(`c.instructor_id = $${params.length}`); }
+    if (sucursalId) { params.push(sucursalId); conditions.push(`c.sucursal_id = $${params.length}`); }
+    const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+    const result = await pool.query(`${baseClientQuery()} ${where} ORDER BY c.id DESC`, params);
     res.json(result.rows);
   } catch (error) {
     console.error('Error cargando clientes:', error);
@@ -116,7 +207,8 @@ exports.crearCliente = async (req, res) => {
     direccion,
     horas_requeridas,
     horas_completadas,
-    estado_cliente
+    estado_cliente,
+    sucursal_id
   } = req.body;
 
   try {
@@ -152,9 +244,10 @@ exports.crearCliente = async (req, res) => {
         direccion,
         horas_requeridas,
         horas_completadas,
-        estado_cliente
+        estado_cliente,
+        sucursal_id
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
       RETURNING *
     `, [
       nombre,
@@ -177,9 +270,11 @@ exports.crearCliente = async (req, res) => {
       direccion || null,
       parseInt(horas_requeridas) || 0,
       parseInt(horas_completadas) || 0,
-      estado_cliente || 'Inscrito'
+      estado_cliente || 'Inscrito',
+      sucursal_id || resolverFiltroSucursal(req) || null
     ]);
 
+    await registrarAuditoria(req, 'Creó cliente', result.rows[0].nombre);
     res.status(201).json(result.rows[0]);
   } catch (error) {
     console.error('Error creando cliente:', error);
@@ -210,7 +305,8 @@ exports.actualizarCliente = async (req, res) => {
     direccion,
     horas_requeridas,
     horas_completadas,
-    estado_cliente
+    estado_cliente,
+    sucursal_id
   } = req.body;
 
   try {
@@ -222,6 +318,8 @@ exports.actualizarCliente = async (req, res) => {
     if (duplicateError) {
       return res.status(409).json({ error: duplicateError });
     }
+
+    const actual = await pool.query('SELECT sucursal_id FROM clientes WHERE id = $1', [id]);
 
     const result = await pool.query(
       `UPDATE clientes
@@ -245,8 +343,9 @@ exports.actualizarCliente = async (req, res) => {
            direccion = $18,
            horas_requeridas = $19,
            horas_completadas = $20,
-           estado_cliente = $21
-       WHERE id = $22
+           estado_cliente = $21,
+           sucursal_id = $22
+       WHERE id = $23
        RETURNING *`,
       [
         nombre,
@@ -270,6 +369,7 @@ exports.actualizarCliente = async (req, res) => {
         parseInt(horas_requeridas) || 0,
         parseInt(horas_completadas) || 0,
         estado_cliente || 'Inscrito',
+        sucursal_id || actual.rows[0]?.sucursal_id || null,
         id
       ]
     );
@@ -312,6 +412,10 @@ exports.subirFotoCliente = async (req, res) => {
 
 exports.eliminarCliente = async (req, res) => {
   const { id } = req.params;
+  const actual = await pool.query('SELECT nombre FROM clientes WHERE id = $1', [id]);
   await pool.query('DELETE FROM clientes WHERE id = $1', [id]);
+  if (actual.rowCount > 0) {
+    await registrarAuditoria(req, 'Eliminó cliente', actual.rows[0].nombre);
+  }
   res.status(204).send();
 };

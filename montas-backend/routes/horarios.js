@@ -5,13 +5,16 @@ const {
   obtenerHorarios,
   crearHorario,
   eliminarHorario,
-  marcarClaseComoHecha
+  marcarClaseComoHecha,
+  getMisHorarios
 } = require("../controllers/horariosController");
+const { requireStaff } = require('../middlewares/roleMiddleware');
 
-router.get("/", obtenerHorarios);
-router.post("/", crearHorario);
-router.delete("/:id", eliminarHorario);
-router.patch("/hecho/:id", marcarClaseComoHecha);
-router.patch("/:id", marcarClaseComoHecha);
+router.get("/me", getMisHorarios);
+router.get("/", requireStaff, obtenerHorarios);
+router.post("/", requireStaff, crearHorario);
+router.delete("/:id", requireStaff, eliminarHorario);
+router.patch("/hecho/:id", requireStaff, marcarClaseComoHecha);
+router.patch("/:id", requireStaff, marcarClaseComoHecha);
 
 module.exports = router;

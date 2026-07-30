@@ -122,22 +122,22 @@
   <div class="factura-box">
     <div class="factura-header">
       <div class="d-flex align-items-center">
-        <img src="assets/logo.png" alt="Logo" class="me-3" />
+        <img data-branding="logo" src="assets/logo.png" alt="Logo" class="me-3" />
         <div>
-          <h1 class="factura-title mb-1">Montas Auto Academy</h1>
+          <h1 class="factura-title mb-1" data-branding="nombre">Montas Auto Academy</h1>
           <small>Recibo de Pago</small>
         </div>
       </div>
       <div class="text-end">
         <p class="mb-1"><strong>Fecha:</strong> <span id="fechaFactura"></span></p>
-        <p class="mb-0"><strong>Factura #:</strong> 00123</p>
+        <p class="mb-0"><strong>Factura #:</strong> <span id="numeroFactura">—</span></p>
       </div>
     </div>
 
     <div class="factura-info mb-4">
       <p><strong>Cliente:</strong> <span id="nombreCliente"></span></p>
       <p><strong>Teléfono:</strong> <span id="telefonoCliente"></span></p>
-      <p><strong>Instructor:</strong> Luis Alberto Montas</p>
+      <p><strong>Instructor:</strong> <span id="nombreInstructor">Sin asignar</span></p>
     </div>
 
     <table class="table table-bordered table-sm mb-4">
@@ -171,6 +171,9 @@
 
   </div>
 
+  <script src="js/config.js"></script>
+<script src="js/authHelpers.js"></script>
+<script>aplicarBranding();</script>
   <script>
     if (!localStorage.getItem("sesionActiva")) {
       window.location.href = "login.html";
@@ -180,11 +183,11 @@
     const clienteId = urlParams.get("id");
   
     document.getElementById("fechaFactura").textContent = new Date().toLocaleDateString();
-    document.getElementById("btnVolver").href = `detalle-cliente.html?id=${clienteId}`;
+    document.getElementById("btnVolver").href = `expediente.html?id=${clienteId}`;
   
     async function cargarFactura() {
       try {
-        const clienteRes = await fetch("http://localhost:4000/api/clientes/" + clienteId);
+        const clienteRes = await fetch(API_BASE + "/api/clientes/" + clienteId);
         const cliente = await clienteRes.json();
   
         if (!cliente || !cliente.nombre) {
@@ -200,11 +203,34 @@
         document.getElementById("telefonoCliente").textContent = cliente.telefono;
         document.getElementById("totalCurso").textContent = totalCurso.toFixed(2);
         document.getElementById("inscripcionFactura").textContent = inscripcion.toFixed(2);
-  
+
+        if (cliente.instructor_id) {
+          try {
+            const instructorRes = await fetch(`${API_BASE}/api/instructores/${cliente.instructor_id}`);
+            const instructor = await instructorRes.json();
+            document.getElementById("nombreInstructor").textContent = instructor?.nombre || "Sin asignar";
+          } catch (e) {
+            console.error("Error cargando instructor:", e);
+          }
+        }
+
         // Obtener los pagos
-        const pagosRes = await fetch(`http://localhost:4000/api/pagos/cliente/${clienteId}`);
+        const pagosRes = await fetch(`${API_BASE}/api/pagos/cliente/${clienteId}`);
         const pagos = await pagosRes.json();
-  
+
+        if (pagos.length > 0) {
+          const ultimoPago = pagos.reduce((max, p) => (new Date(p.fecha) > new Date(max.fecha) || (new Date(p.fecha).getTime() === new Date(max.fecha).getTime() && p.id > max.id)) ? p : max, pagos[0]);
+          try {
+            const numeroRes = await fetch(`${API_BASE}/api/pagos/${ultimoPago.id}/numero-factura`);
+            const { numero } = await numeroRes.json();
+            document.getElementById("numeroFactura").textContent = numero;
+          } catch (e) {
+            console.error("Error obteniendo número de factura:", e);
+          }
+        } else {
+          document.getElementById("numeroFactura").textContent = "Pendiente";
+        }
+
         let totalPagos = 0;
         const tbody = document.getElementById("tablaPagos");
         tbody.innerHTML = "";
@@ -214,7 +240,7 @@
           const fila = document.createElement("tr");
           fila.innerHTML = `
             <td>${new Date(p.fecha).toLocaleDateString("es-DO")}</td>
-            <td>${p.concepto}</td>
+            <td>${escapeHtml(p.concepto)}</td>
             <td>RD$${parseFloat(p.monto).toFixed(2)}</td>
           `;
           tbody.appendChild(fila);

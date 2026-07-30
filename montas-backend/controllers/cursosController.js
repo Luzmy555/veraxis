@@ -17,17 +17,19 @@ exports.getCursoPorId = async (req, res) => {
 };
 
 exports.crearCurso = async (req, res) => {
-  const { nombre, descripcion, duracion_semanas, precio, activo } = req.body;
+  const { nombre, descripcion, duracion_semanas, precio, activo, horas_teoricas, horas_practicas } = req.body;
   const result = await pool.query(
-    `INSERT INTO cursos (nombre, descripcion, duracion_semanas, precio, activo)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO cursos (nombre, descripcion, duracion_semanas, precio, activo, horas_teoricas, horas_practicas)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING *`,
     [
       nombre,
       descripcion || null,
       duracion_semanas || null,
       parseFloat(precio) || 0,
-      activo === false ? false : true
+      activo === false ? false : true,
+      parseInt(horas_teoricas, 10) || 0,
+      parseInt(horas_practicas, 10) || 0
     ]
   );
   res.status(201).json(result.rows[0]);
@@ -35,7 +37,7 @@ exports.crearCurso = async (req, res) => {
 
 exports.actualizarCurso = async (req, res) => {
   const { id } = req.params;
-  const { nombre, descripcion, duracion_semanas, precio, activo } = req.body;
+  const { nombre, descripcion, duracion_semanas, precio, activo, horas_teoricas, horas_practicas } = req.body;
   const parsedPrecio = parseFloat(precio) || 0;
   const result = await pool.query(
     `UPDATE cursos
@@ -43,8 +45,10 @@ exports.actualizarCurso = async (req, res) => {
          descripcion = $2,
          duracion_semanas = $3,
          precio = $4,
-         activo = $5
-     WHERE id = $6
+         activo = $5,
+         horas_teoricas = $6,
+         horas_practicas = $7
+     WHERE id = $8
      RETURNING *`,
     [
       nombre,
@@ -52,6 +56,8 @@ exports.actualizarCurso = async (req, res) => {
       duracion_semanas || null,
       parsedPrecio,
       activo === false ? false : true,
+      parseInt(horas_teoricas, 10) || 0,
+      parseInt(horas_practicas, 10) || 0,
       id
     ]
   );

@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.css">
+  <script src="js/config.js"></script>
   <style>
     body, html {
       height: 100%; margin: 0; font-family: 'Segoe UI', sans-serif; overflow-x: hidden;
@@ -26,7 +27,7 @@
     .hero-content { z-index: 1; }
     section { padding: 60px 20px; }
     footer { background: #222; color: white; text-align: center; padding: 20px; }
-    
+
     /* Estilos Swiper Galería */
     .swiper {
       width: 100%; padding-top: 20px; padding-bottom: 50px;
@@ -38,14 +39,18 @@
     .swiper-slide img, .swiper-slide video {
       width: 100%; height: 100%; object-fit: cover;
     }
+
+    .btn-acento { background: var(--acento, #198754); border-color: var(--acento, #198754); color: #fff; }
+    .btn-acento:hover { filter: brightness(0.92); color: #fff; }
+    .texto-acento { color: var(--acento, #0d6efd); }
   </style>
 </head>
 <body>
 
 <header>
   <div class="d-flex align-items-center">
-    <img src="assets/logo.png" alt="Logo" class="logo-img me-2">
-    <span class="text-white fw-bold">Montas Auto Academy</span>
+    <img src="assets/logo.png" alt="Logo" class="logo-img me-2" id="headerLogo">
+    <span class="text-white fw-bold" id="headerNombre">Montas Auto Academy</span>
   </div>
   <div class="nav-links">
     <a href="#nosotros">Nosotros</a>
@@ -56,10 +61,10 @@
 </header>
 
 <section class="hero">
-  <video src="assets/video/driving-night.mp4" autoplay loop muted></video>
+  <video id="heroVideo" src="assets/video/driving-night.mp4" autoplay loop muted></video>
   <div class="hero-content">
-    <h1 class="display-4 fw-bold">Conduciendo hacia tu futuro</h1>
-    <p class="lead">Aprende a manejar con seguridad, confianza y excelencia.</p>
+    <h1 class="display-4 fw-bold" id="heroTitulo">Conduciendo hacia tu futuro</h1>
+    <p class="lead" id="heroSubtitulo">Aprende a manejar con seguridad, confianza y excelencia.</p>
   </div>
 </section>
 
@@ -67,11 +72,11 @@
   <div class="row align-items-center">
     <div class="col-md-6">
       <h2 class="fw-bold">Sobre Nosotros</h2>
-      <p>En Montas Auto Academy, formamos conductores responsables con programas adaptados a tus necesidades. Con instructores experimentados, ambientes seguros y última tecnología, tu formación está en las mejores manos.</p>
-      <p>Ya sea tu primera experiencia al volante o busques perfeccionar tus habilidades, estamos comprometidos en guiarte con paciencia, profesionalismo y excelencia.</p>
+      <p id="nosotrosTexto1">En Montas Auto Academy, formamos conductores responsables con programas adaptados a tus necesidades. Con instructores experimentados, ambientes seguros y última tecnología, tu formación está en las mejores manos.</p>
+      <p id="nosotrosTexto2">Ya sea tu primera experiencia al volante o busques perfeccionar tus habilidades, estamos comprometidos en guiarte con paciencia, profesionalismo y excelencia.</p>
     </div>
     <div class="col-md-6">
-      <img src="assets/class1.jpeg" class="img-fluid rounded shadow" alt="Clase de manejo">
+      <img src="assets/class1.jpeg" id="nosotrosImagen" class="img-fluid rounded shadow" alt="Clase de manejo">
     </div>
   </div>
 </section>
@@ -81,16 +86,8 @@
     <h2 class="text-white mb-5">Galería de Momentos</h2>
     <div class="row g-4 justify-content-center" id="galeria">
   <div class="swiper">
-    <div class="swiper-wrapper">
-      <div class="swiper-slide"><img src="assets/class1.jpeg" alt="Clase"></div>
-      <div class="swiper-slide"><video src="assets/video/video2.mp4" muted loop playsinline autoplay class="img-fluid galeria-item"></video></div>
-       <div class="swiper-slide"><img src="assets/class4.jpeg" alt="Clase"></div>
-      <div class="swiper-slide"><img src="assets/class2.jpeg" alt="Clase"></div>
-      <div class="swiper-slide"><img src="assets/class1.jpeg" alt="Clase"></div>
-      <div class="swiper-slide"><video src="assets/video/video2.mp4" muted loop playsinline autoplay class="img-fluid galeria-item"></video></div>
-      <div class="swiper-slide"><img src="assets/class4.jpeg" alt="Clase"></div>
-      <div class="swiper-slide"><img src="assets/class2.jpeg" alt="Clase"></div>
-      <div class="swiper-slide"><video src="assets/video/video3.mp4" muted loop playsinline autoplay class="img-fluid galeria-item"></video></div>
+    <div class="swiper-wrapper" id="swiperWrapper">
+      <!-- Se rellena dinámicamente desde /api/configuracion/portada -->
     </div>
   </div>
 </section>
@@ -101,16 +98,16 @@
       <h2 class="fw-bold">Contáctanos</h2>
       <p>Estamos aquí para ayudarte a dar tu primer paso hacia la independencia al volante. ¡Escríbenos hoy mismo o visítanos!</p>
       <ul class="list-unstyled">
-        <li><i class="bi bi-geo-alt-fill"></i> Santa Cruz de Barahona, República Dominicana</li>
-        <li><i class="bi bi-telephone-fill"></i> <a href="tel:+18098411681" class="text-decoration-none">+1 (809) 841-1681</a></li>
+        <li><i class="bi bi-geo-alt-fill"></i> <span id="contactoDireccion">Santa Cruz de Barahona, República Dominicana</span></li>
+        <li><i class="bi bi-telephone-fill"></i> <a id="contactoTelefono" href="tel:+18098411681" class="text-decoration-none">+1 (809) 841-1681</a></li>
       </ul>
 
       <!-- Botones sociales -->
       <div class="mt-4 d-flex gap-3">
-        <a href="https://wa.me/18098411681" target="_blank" class="btn btn-success">
+        <a id="contactoWhatsapp" href="https://wa.me/18098411681" target="_blank" class="btn btn-acento">
           <i class="bi bi-whatsapp"></i> WhatsApp
         </a>
-        <a href="https://www.instagram.com/montasautoacademy?igsh=MWpmbXNha3dzaGhmNA==" target="_blank" class="btn btn-outline-primary">
+        <a id="contactoInstagram" href="#" target="_blank" class="btn btn-outline-primary" style="display:none">
           <i class="bi bi-instagram"></i> Instagram
         </a>
       </div>
@@ -118,26 +115,98 @@
     </div>
 
     <div class="col-md-6">
-      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3856.0646372991017!2d-71.19949922403272!3d18.20826198265192!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8ea54b4aa8c6e759%3A0x6df55c92e25553f0!2sSanta%20Cruz%20de%20Barahona%2C%20Rep%C3%BAblica%20Dominicana!5e0!3m2!1ses-419!2sdo!4v1714500000000!5m2!1ses-419!2sdo" width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+      <iframe id="mapaEmbed" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3856.0646372991017!2d-71.19949922403272!3d18.20826198265192!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8ea54b4aa8c6e759%3A0x6df55c92e25553f0!2sSanta%20Cruz%20de%20Barahona%2C%20Rep%C3%BAblica%20Dominicana!5e0!3m2!1ses-419!2sdo!4v1714500000000!5m2!1ses-419!2sdo" width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
     </div>
   </div>
 </section>
- 
+
 <footer>
-  <p>&copy; 2025 Montas Auto Academy. Todos los derechos reservados.</p>
+  <p id="footerTexto">&copy; 2025 Montas Auto Academy. Todos los derechos reservados.</p>
+  <p class="mb-0"><a href="privacidad.html" class="text-white-50">Política de Privacidad</a></p>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/swiper@9/swiper-bundle.min.js"></script>
 <script>
-  const swiper = new Swiper('.swiper', {
-    loop: true,
-    grabCursor: true,
-    spaceBetween: 20,
-    slidesPerView: 'auto',
-    autoplay: { delay: 3000, disableOnInteraction: false },
-    speed: 800,
-  });
+  // Galería de respaldo (se usa solo si todavía no se ha subido nada desde Configuración > Página de Inicio).
+  const GALERIA_RESPALDO = [
+    { tipo: 'imagen', src: 'assets/class1.jpeg' },
+    { tipo: 'video', src: 'assets/video/video2.mp4' },
+    { tipo: 'imagen', src: 'assets/class4.jpeg' },
+    { tipo: 'imagen', src: 'assets/class2.jpeg' },
+    { tipo: 'video', src: 'assets/video/video3.mp4' }
+  ];
+
+  function construirSlide(tipo, src) {
+    if (tipo === 'video') {
+      return `<div class="swiper-slide"><video src="${src}" muted loop playsinline autoplay class="img-fluid galeria-item"></video></div>`;
+    }
+    return `<div class="swiper-slide"><img src="${src}" alt="Momento Montas Auto Academy"></div>`;
+  }
+
+  async function cargarPortada() {
+    let data = {};
+    try {
+      const res = await fetch(`${API_BASE}/api/configuracion/portada`);
+      if (res.ok) data = await res.json();
+    } catch (error) {
+      console.error('No se pudo cargar la portada, se usan los valores por defecto:', error);
+    }
+
+    if (data.nombre_sistema) {
+      document.getElementById('headerNombre').textContent = data.nombre_sistema;
+      document.title = data.nombre_sistema;
+      document.getElementById('footerTexto').innerHTML = `&copy; ${new Date().getFullYear()} ${data.nombre_sistema}. Todos los derechos reservados.`;
+    }
+    if (data.logo_url) {
+      document.getElementById('headerLogo').src = `${API_BASE}/uploads/config/${data.logo_url}`;
+    }
+    if (data.portada_titulo) document.getElementById('heroTitulo').textContent = data.portada_titulo;
+    if (data.portada_subtitulo) document.getElementById('heroSubtitulo').textContent = data.portada_subtitulo;
+    if (data.portada_video_url) document.getElementById('heroVideo').src = `${API_BASE}/uploads/config/${data.portada_video_url}`;
+
+    if (data.nosotros_texto1) document.getElementById('nosotrosTexto1').textContent = data.nosotros_texto1;
+    if (data.nosotros_texto2) document.getElementById('nosotrosTexto2').textContent = data.nosotros_texto2;
+    if (data.nosotros_imagen_url) document.getElementById('nosotrosImagen').src = `${API_BASE}/uploads/config/${data.nosotros_imagen_url}`;
+
+    if (data.direccion) document.getElementById('contactoDireccion').textContent = data.direccion;
+    if (data.telefono) {
+      const telLimpio = data.telefono.replace(/[^\d+]/g, '');
+      document.getElementById('contactoTelefono').textContent = data.telefono;
+      document.getElementById('contactoTelefono').href = `tel:${telLimpio}`;
+    }
+    if (data.whatsapp) {
+      const waLimpio = data.whatsapp.replace(/[^\d]/g, '');
+      document.getElementById('contactoWhatsapp').href = `https://wa.me/${waLimpio}`;
+    }
+    if (data.instagram_url) {
+      const btnInstagram = document.getElementById('contactoInstagram');
+      btnInstagram.href = data.instagram_url;
+      btnInstagram.style.display = '';
+    }
+    if (data.mapa_embed_url) document.getElementById('mapaEmbed').src = data.mapa_embed_url;
+
+    if (data.tema_color) {
+      document.documentElement.style.setProperty('--acento', data.tema_color);
+    }
+
+    const wrapper = document.getElementById('swiperWrapper');
+    const items = (data.galeria && data.galeria.length > 0)
+      ? data.galeria.map(g => ({ tipo: g.tipo, src: `${API_BASE}/uploads/config/${g.archivo}` }))
+      : GALERIA_RESPALDO;
+    wrapper.innerHTML = items.map(g => construirSlide(g.tipo, g.src)).join('');
+
+    new Swiper('.swiper', {
+      loop: true,
+      grabCursor: true,
+      spaceBetween: 20,
+      slidesPerView: 'auto',
+      autoplay: { delay: 3000, disableOnInteraction: false },
+      speed: 800,
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', cargarPortada);
 </script>
 
 </body>

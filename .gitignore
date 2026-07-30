@@ -1,0 +1,8 @@
+# Respaldos locales generados por scripts/backupUploads.js — no deben subirse al repo
+montas-backend/backups/
+
+# Logs generados por winston (logger.js) — no deben subirse al repo
+montas-backend/logs/
+
+# Variables de entorno con credenciales reales — nunca deben subirse al repo
+montas-backend/.env

@@ -4,6 +4,7 @@ const controller = require('../controllers/instructoresController');
 const { requireAdmin } = require('../middlewares/roleMiddleware');
 
 router.get('/', controller.getInstructores);
+router.get('/me', controller.getMiPerfilInstructor);
 router.get('/:id', controller.getInstructorPorId);
 router.post('/', requireAdmin, controller.crearInstructor);
 router.put('/:id', requireAdmin, controller.actualizarInstructor);

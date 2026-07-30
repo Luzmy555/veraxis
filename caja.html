@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Caja | Montas Auto Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+    :root {
+      --bg: #f4f6f8;
+      --card: #fcfdfe;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --sidebar: #090f1ce1;
+      --accent: #0d9488;
+      --accent-light: rgba(13, 148, 136, 0.08);
+      --border: #e2e8f0;
+      --shadow: 0 4px 12px rgba(15, 23, 42, 0.03), 0 1px 2px rgba(15, 23, 42, 0.02);
+      --danger: #ef4444;
+      --danger-light: rgba(239, 68, 68, 0.08);
+      --info: #2563eb;
+      --info-light: rgba(37, 99, 235, 0.08);
+    }
+    body.dark {
+      --bg: #070d19;
+      --card: #151f32;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.06);
+      --shadow: 0 10px 25px -5px rgba(0,0,0,0.4);
+    }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    /* ---- Topbar ---- */
+    .topbar {
+      background: var(--sidebar);
+      padding: 18px 30px;
+      display: flex;
+      align-items: center;
+      color: #fff;
+    }
+    .topbar img { width: 40px; margin-right: 12px; }
+    .topbar h1 { font-size: 1.05rem; margin: 0; font-weight: 700; }
+    .topbar small { color: #94a3b8; }
+    .topbar .btn-icon {
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.03);
+      color: #cbd5e1;
+    }
+    .topbar .btn-icon:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 16px 60px 16px; }
+
+    /* ---- Tab pills ---- */
+    .caja-tabs {
+      display: flex;
+      gap: 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 6px;
+      box-shadow: var(--shadow);
+      margin-bottom: 26px;
+      overflow-x: auto;
+    }
+    .caja-tab-btn {
+      flex: 1 1 auto;
+      white-space: nowrap;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 13.5px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      transition: all 0.15s ease;
+    }
+    .caja-tab-btn:hover { background: var(--accent-light); color: var(--accent); }
+    .caja-tab-btn.active { background: var(--accent); color: #fff; }
+    .caja-tab-panel { display: none; }
+    .caja-tab-panel.active { display: block; }
+
+    /* ---- Cards ---- */
+    .glass-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+    .kpi-card { padding: 20px; }
+    .kpi-card .kpi-label {
+      color: var(--text-muted);
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .kpi-card .kpi-value { font-size: 24px; font-weight: 800; color: var(--text); }
+    .kpi-card .kpi-value.accent { color: var(--accent); }
+    .kpi-card .kpi-value.danger { color: var(--danger); }
+    .kpi-card .kpi-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .section-title {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ---- Forms themed for dark mode ---- */
+    .form-control, .form-select {
+      background: var(--bg);
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .form-control:focus, .form-select:focus {
+      background: var(--bg);
+      color: var(--text);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-light);
+    }
+    .form-label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+
+    /* ---- Tables ---- */
+    .table { color: var(--text); margin-bottom: 0; }
+    .table thead th {
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      background: transparent;
+    }
+    .table td, .table th { border-color: var(--border); vertical-align: middle; }
+    .table tbody tr:hover { background: var(--accent-light); }
+
+    .badge-tipo-ingreso { background: var(--accent-light); color: var(--accent); }
+    .badge-tipo-egreso { background: var(--danger-light); color: var(--danger); }
+
+    /* ---- Cierre / POS ---- */
+    .pos-esperado-label {
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .pos-esperado-monto { font-size: 2.2rem; font-weight: 800; color: var(--accent); line-height: 1.1; }
+    .pos-input-contado {
+      font-size: 2rem;
+      font-weight: 800;
+      text-align: center;
+      width: 100%;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 10px;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .pos-input-contado:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-light); }
+    .pos-diferencia { margin-top: 16px; padding: 14px; border-radius: 14px; font-size: 1.1rem; font-weight: 700; text-align: center; }
+    .pos-diferencia.cuadra { background: var(--accent-light); color: var(--accent); }
+    .pos-diferencia.sobra { background: var(--info-light); color: var(--info); }
+    .pos-diferencia.falta { background: var(--danger-light); color: var(--danger); }
+    .pos-diferencia .sub { font-size: 0.75rem; font-weight: 500; opacity: 0.8; display: block; margin-top: 2px; }
+    .badge-diferencia { display: inline-block; padding: 5px 14px; border-radius: 20px; font-weight: 700; font-size: 0.82rem; }
+    .badge-diferencia.cuadra { background: var(--accent-light); color: var(--accent); }
+    .badge-diferencia.sobra { background: var(--info-light); color: var(--info); }
+    .badge-diferencia.falta { background: var(--danger-light); color: var(--danger); }
+
+    .estado-caja-pill { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+    .estado-caja-pill.abierta { background: var(--accent-light); color: var(--accent); }
+    .estado-caja-pill.cerrada { background: var(--danger-light); color: var(--danger); }
+    .estado-caja-pill.sin_abrir { background: rgba(148,163,184,0.15); color: var(--text-muted); }
+
+    .link-out {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 14px; border-radius: 12px; background: var(--accent-light); color: var(--accent);
+      text-decoration: none; font-weight: 600; font-size: 13.5px;
+    }
+    .link-out:hover { background: var(--accent); color: #fff; }
+  </style>
+</head>
+<body>
+<script>
+  if (!localStorage.getItem('sesionActiva')) {
+    window.location.href = 'login.html';
+  }
+</script>
+
+<div class="topbar">
+  <img data-branding="logo" src="assets/logo.png" alt="Logo" />
+  <div class="flex-grow-1">
+    <h1>Caja</h1>
+    <small>Módulo administrativo financiero</small>
+  </div>
+  <select id="selectSucursalCaja" class="form-select form-select-sm me-2" style="width:auto; display:none;"></select>
+  <span id="sedeFijaLabel" class="badge bg-secondary me-2" style="display:none;"></span>
+  <a href="panel.html" class="btn btn-icon btn-sm me-2"><i class="bi bi-house-door"></i></a>
+  <button class="btn btn-icon btn-sm me-2" onclick="toggleTheme()"><i class="bi bi-moon-stars"></i></button>
+  <button class="btn btn-icon btn-sm" onclick="cerrarSesion()"><i class="bi bi-box-arrow-left"></i></button>
+</div>
+
+<div class="wrap">
+  <div class="caja-tabs">
+    <button class="caja-tab-btn active" data-tab="dashboard" onclick="cambiarTab('dashboard')"><i class="bi bi-grid-1x2-fill me-1"></i>Dashboard</button>
+    <button class="caja-tab-btn" data-tab="ingresos" onclick="cambiarTab('ingresos')"><i class="bi bi-arrow-down-circle me-1"></i>Ingresos</button>
+    <button class="caja-tab-btn" data-tab="egresos" onclick="cambiarTab('egresos')"><i class="bi bi-arrow-up-circle me-1"></i>Egresos</button>
+    <button class="caja-tab-btn" data-tab="movimientos" onclick="cambiarTab('movimientos')"><i class="bi bi-list-ul me-1"></i>Movimientos</button>
+    <button class="caja-tab-btn" data-tab="cierre" onclick="cambiarTab('cierre')"><i class="bi bi-lock me-1"></i>Cierre</button>
+    <button class="caja-tab-btn" data-tab="reportes" onclick="cambiarTab('reportes')"><i class="bi bi-bar-chart-line me-1"></i>Reportes</button>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="caja-tab-panel active" id="tab-dashboard">
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md">
+        <div class="glass-card kpi-card">
+          <div class="kpi-label">Balance actual</div>
+          <div class="kpi-value accent" id="kpiBalance">RD$ 0.00</div>
+        </div>
+      </div>
+      <div class="col-6 col-md">
+        <div class="glass-card kpi-card">
+          <div class="kpi-label">Ingresos de hoy</div>
+          <div class="kpi-value" id="kpiIngresos">RD$ 0.00</div>
+        </div>
+      </div>
+      <div class="col-6 col-md">
+        <div class="glass-card kpi-card">
+          <div class="kpi-label">Egresos de hoy</div>
+          <div class="kpi-value danger" id="kpiEgresos">RD$ 0.00</div>
+        </div>
+      </div>
+      <div class="col-6 col-md">
+        <div class="glass-card kpi-card">
+          <div class="kpi-label">Estado de caja</div>
+          <div class="kpi-value" style="font-size:16px; padding-top:6px;"><span class="estado-caja-pill sin_abrir" id="kpiEstado">—</span></div>
+        </div>
+      </div>
+      <div class="col-6 col-md">
+        <div class="glass-card kpi-card">
+          <div class="kpi-label">Movimientos hoy</div>
+          <div class="kpi-value" id="kpiMovimientos">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <div class="glass-card p-4">
+          <div class="section-title"><i class="bi bi-clock-history"></i> Movimientos recientes</div>
+          <div id="dashMovimientosRecientes"><p class="text-muted small">Cargando...</p></div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="glass-card p-4">
+          <div class="section-title"><i class="bi bi-lightning-charge"></i> Acciones rápidas</div>
+          <div class="d-grid gap-2" id="dashAccionesRapidas"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== INGRESOS ===== -->
+  <div class="caja-tab-panel" id="tab-ingresos">
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <div class="glass-card p-4">
+          <div class="section-title"><i class="bi bi-plus-circle"></i> Registrar ingreso</div>
+          <form id="formIngreso">
+            <div class="mb-3">
+              <label class="form-label">Cliente *</label>
+              <input type="text" class="form-control mb-1" id="ingClienteBusqueda" placeholder="Buscar estudiante..." />
+              <select class="form-select" id="ingClienteId" required>
+                <option value="">Selecciona un cliente...</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Tipo de ingreso *</label>
+              <select class="form-select" id="ingTipo" required>
+                <option value="Inscripción">Inscripción</option>
+                <option value="Cuota">Cuota</option>
+                <option value="Pago final">Pago final</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Concepto (detalle)</label>
+              <input type="text" class="form-control" id="ingConcepto" placeholder="Ej. Cuota 2 de 4" />
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <label class="form-label">Monto *</label>
+                <input type="number" class="form-control" id="ingMonto" min="0.01" step="0.01" required />
+              </div>
+              <div class="col-6">
+                <label class="form-label">Método de pago</label>
+                <select class="form-select" id="ingMetodoPago">
+                  <option value="Efectivo">Efectivo</option>
+                  <option value="Transferencia">Transferencia</option>
+                  <option value="Tarjeta">Tarjeta</option>
+                  <option value="Cheque">Cheque</option>
+                </select>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Fecha *</label>
+              <input type="date" class="form-control" id="ingFecha" required />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Observación</label>
+              <textarea class="form-control" id="ingObservacion" rows="2"></textarea>
+            </div>
+            <button type="submit" class="btn w-100" style="background:var(--accent); color:#fff; font-weight:700;">Registrar ingreso</button>
+          </form>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="glass-card p-4">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="section-title mb-0"><i class="bi bi-cash-coin"></i> Ingresos de hoy</div>
+            <input type="date" id="ingFiltroFecha" class="form-control form-control-sm" style="width:auto" />
+          </div>
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead><tr><th>Cliente</th><th>Concepto</th><th>Método</th><th class="text-end">Monto</th></tr></thead>
+              <tbody id="tablaIngresosHoy"><tr><td colspan="4" class="text-center py-3">Cargando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== EGRESOS ===== -->
+  <div class="caja-tab-panel" id="tab-egresos">
+    <div class="row g-4">
+      <div class="col-lg-5">
+        <div class="glass-card p-4">
+          <div class="section-title"><i class="bi bi-graph-down-arrow"></i> Resumen de egresos</div>
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <div class="kpi-label">Hoy</div>
+              <div class="kpi-value danger" id="egresoHoyTotal">RD$ 0.00</div>
+            </div>
+            <div class="col-6">
+              <div class="kpi-label">Este mes</div>
+              <div class="kpi-value" id="egresoMesTotal">RD$ 0.00</div>
+            </div>
+          </div>
+          <div class="kpi-label mb-2">Principales categorías del mes</div>
+          <div id="egresoPorCategoria"><p class="text-muted small">Cargando...</p></div>
+          <a href="gastos.html" class="link-out mt-3">
+            Gestionar todos los gastos <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="glass-card p-4">
+          <div class="section-title"><i class="bi bi-receipt"></i> Egresos recientes</div>
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead><tr><th>Fecha</th><th>Categoría</th><th>Proveedor</th><th class="text-end">Monto</th></tr></thead>
+              <tbody id="tablaEgresosRecientes"><tr><td colspan="4" class="text-center py-3">Cargando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MOVIMIENTOS ===== -->
+  <div class="caja-tab-panel" id="tab-movimientos">
+    <div class="glass-card p-4 mb-3">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label">Buscar</label>
+          <input type="text" class="form-control" id="movBusqueda" placeholder="Cliente, concepto, proveedor..." />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Desde</label>
+          <input type="date" class="form-control" id="movDesde" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Hasta</label>
+          <input type="date" class="form-control" id="movHasta" />
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Tipo</label>
+          <select class="form-select" id="movTipo">
+            <option value="">Todos</option>
+            <option value="Ingreso">Ingresos</option>
+            <option value="Egreso">Egresos</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <button class="btn w-100" style="background:var(--accent); color:#fff; font-weight:700;" onclick="cargarMovimientos(1)">Filtrar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card p-4">
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr><th>Fecha</th><th>Tipo</th><th>Concepto</th><th>Cliente/Categoría</th><th>Método</th><th class="text-end">Monto</th><th>Usuario</th></tr>
+          </thead>
+          <tbody id="tablaMovimientos"><tr><td colspan="7" class="text-center py-3">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="small text-muted" id="movInfoPagina"></div>
+        <div>
+          <button class="btn btn-sm btn-outline-secondary me-2" id="movBtnAnterior" onclick="cambiarPaginaMovimientos(-1)">Anterior</button>
+          <button class="btn btn-sm btn-outline-secondary" id="movBtnSiguiente" onclick="cambiarPaginaMovimientos(1)">Siguiente</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CIERRE ===== -->
+  <div class="caja-tab-panel" id="tab-cierre">
+    <div class="date-nav d-flex align-items-center justify-content-center gap-3 mb-4">
+      <button class="btn btn-sm btn-outline-secondary" onclick="cambiarDiaCierre(-1)"><i class="bi bi-chevron-left"></i></button>
+      <div class="text-center">
+        <div class="fw-bold" id="cierreFechaTexto" style="text-transform:capitalize">—</div>
+        <button class="btn btn-sm mt-1" style="color:var(--accent); border:1px solid var(--accent); border-radius:20px;" onclick="irAHoyCierre()">Hoy</button>
+      </div>
+      <button class="btn btn-sm btn-outline-secondary" onclick="cambiarDiaCierre(1)"><i class="bi bi-chevron-right"></i></button>
+    </div>
+
+    <div id="cierreContent"><p class="text-muted text-center">Cargando...</p></div>
+
+    <div class="glass-card p-4 mt-4">
+      <div class="section-title"><i class="bi bi-journal-check"></i> Historial de cierres</div>
+      <div class="table-responsive">
+        <table class="table align-middle text-center">
+          <thead>
+            <tr><th>Fecha</th><th>Apertura</th><th>Ingresos</th><th>Egresos</th><th>Esperado</th><th>Contado</th><th>Diferencia</th><th>Cerrado por</th><th></th></tr>
+          </thead>
+          <tbody id="tablaCierres"><tr><td colspan="9" class="py-3">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REPORTES ===== -->
+  <div class="caja-tab-panel" id="tab-reportes">
+    <div class="glass-card p-4 mb-3 no-print">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+          <label class="form-label">Desde</label>
+          <input type="date" class="form-control" id="repDesde" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Hasta</label>
+          <input type="date" class="form-control" id="repHasta" />
+        </div>
+        <div class="col-md-3">
+          <button class="btn w-100" style="background:var(--accent); color:#fff; font-weight:700;" onclick="cargarReportes()">Generar reporte</button>
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-outline-secondary w-100" onclick="window.print()"><i class="bi bi-printer me-1"></i>Imprimir</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-4">
+        <div class="glass-card kpi-card">
+          <div class="kpi-label">Ingresos del período</div>
+          <div class="kpi-value" id="repIngresos">RD$ 0.00</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="glass-card kpi-card">
+          <div class="kpi-label">Egresos del período</div>
+          <div class="kpi-value danger" id="repEgresos">RD$ 0.00</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="glass-card kpi-card">
+          <div class="kpi-label">Balance</div>
+          <div class="kpi-value accent" id="repBalance">RD$ 0.00</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-lg-6">
+        <div class="glass-card p-4">
+          <div class="section-title"><i class="bi bi-credit-card"></i> Ingresos vs. egresos por método de pago</div>
+          <div id="repPorMetodo"><p class="text-muted small">Sin datos.</p></div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="glass-card p-4">
+          <div class="section-title"><i class="bi bi-tags"></i> Egresos por categoría</div>
+          <div id="repPorCategoria"><p class="text-muted small">Sin datos.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card p-4">
+      <div class="section-title"><i class="bi bi-graph-up"></i> Ingresos y egresos por día</div>
+      <canvas id="repGraficoDia" height="90"></canvas>
+    </div>
+  </div>
+</div>
+
+<div class="position-fixed bottom-0 end-0 p-3 no-print" style="z-index:1055"><div id="toasts"></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/authHelpers.js"></script>
+<script>aplicarBranding();</script>
+<script>
+  const API = API_BASE + '/api';
+  let fechaCierreSeleccionada = new Date().toISOString().slice(0, 10);
+  let resumenCierreActual = null;
+  let movPagina = 1;
+  let movTotalPaginas = 1;
+  let clientesCache = [];
+  let graficoReportes = null;
+
+  function toggleTheme() {
+    document.body.classList.toggle('dark');
+    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+  }
+  if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+
+  function cerrarSesion() { logout(); }
+
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toasts');
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-bg-${type} border-0 mb-2`;
+    toast.innerHTML = `<div class="d-flex"><div class="toast-body">${escapeHtml(message)}</div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+    container.appendChild(toast);
+    new bootstrap.Toast(toast, { delay: 4000 }).show();
+  }
+
+  function formatoMoneda(n) {
+    return `RD$ ${parseFloat(n || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+  function claseDiferencia(d) {
+    if (Math.abs(d) < 0.01) return 'cuadra';
+    return d > 0 ? 'sobra' : 'falta';
+  }
+  function badgeDiferenciaHtml(diferencia) {
+    const d = parseFloat(diferencia);
+    const clase = claseDiferencia(d);
+    const texto = clase === 'cuadra' ? 'Cuadrada' : clase === 'sobra' ? `Sobran ${formatoMoneda(d)}` : `Faltan ${formatoMoneda(Math.abs(d))}`;
+    return `<span class="badge-diferencia ${clase}">${texto}</span>`;
+  }
+
+  const TABS = ['dashboard', 'ingresos', 'egresos', 'movimientos', 'cierre', 'reportes'];
+  const tabsCargados = new Set();
+
+  function cambiarTab(nombre) {
+    TABS.forEach(t => {
+      document.getElementById('tab-' + t).classList.toggle('active', t === nombre);
+      document.querySelector(`.caja-tab-btn[data-tab="${t}"]`).classList.toggle('active', t === nombre);
+    });
+    if (!tabsCargados.has(nombre)) {
+      tabsCargados.add(nombre);
+      if (nombre === 'ingresos') initIngresos();
+      if (nombre === 'egresos') cargarEgresosTab();
+      if (nombre === 'movimientos') cargarMovimientos(1);
+      if (nombre === 'cierre') cargarCierreTab();
+      if (nombre === 'reportes') initReportes();
+    }
+  }
+
+  // ===== SUCURSAL (caja es una caja física por sede) =====
+  let sucursalIdActual = getSucursalId() || null;
+
+  function sufijoSucursal(separador) {
+    return sucursalIdActual ? `${separador}sucursal_id=${sucursalIdActual}` : '';
+  }
+
+  async function initSelectorSucursal() {
+    if (!esUsuarioGlobal()) {
+      try {
+        const res = await fetch(`${API}/sucursales`, { headers: getAuthHeaders() });
+        const sedes = await res.json();
+        const mia = sedes.find(s => String(s.id) === String(sucursalIdActual));
+        document.getElementById('sedeFijaLabel').textContent = mia ? mia.nombre : 'Mi sede';
+        document.getElementById('sedeFijaLabel').style.display = '';
+      } catch (e) { /* si falla, se queda sin nombre visible */ }
+      return;
+    }
+    const select = document.getElementById('selectSucursalCaja');
+    try {
+      const res = await fetch(`${API}/sucursales`, { headers: getAuthHeaders() });
+      const sedes = await res.json();
+      select.innerHTML = sedes.map(s => `<option value="${s.id}">${escapeHtml(s.nombre)}</option>`).join('');
+      if (sedes.length > 0) sucursalIdActual = sedes[0].id;
+      select.style.display = '';
+      select.addEventListener('change', () => {
+        sucursalIdActual = select.value;
+        tabsCargados.clear();
+        cargarDashboard();
+        cargarCierres();
+        const tabActivo = document.querySelector('.caja-tab-btn.active')?.dataset.tab;
+        if (tabActivo && tabActivo !== 'dashboard') cambiarTab(tabActivo);
+      });
+    } catch (error) {
+      console.error('Error cargando sucursales:', error);
+    }
+  }
+
+  // ===== CLIENTES (compartido por Ingresos) =====
+  async function cargarClientes() {
+    try {
+      const res = await fetch(`${API}/clientes`, { headers: getAuthHeaders() });
+      clientesCache = await res.json();
+    } catch (error) {
+      console.error('Error cargando clientes:', error);
+      clientesCache = [];
+    }
+  }
+  function llenarSelectClientes(select, filtro) {
+    const term = (filtro || '').toLowerCase();
+    select.innerHTML = '<option value="">Selecciona un cliente...</option>';
+    clientesCache
+      .filter(c => !term || c.nombre.toLowerCase().includes(term))
+      .forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.id; o.textContent = c.nombre;
+        select.appendChild(o);
+      });
+  }
+
+  // ===== DASHBOARD =====
+  async function cargarDashboard() {
+    const hoy = new Date().toISOString().slice(0, 10);
+    try {
+      const res = await fetch(`${API}/caja/resumen?fecha=${hoy}${sufijoSucursal('&')}`, { headers: getAuthHeaders() });
+      const data = await res.json();
+
+      const estadoPill = document.getElementById('kpiEstado');
+      let ingresos = 0, egresos = 0, cantidad = 0, balance = 0;
+
+      if (data.estado === 'cerrada') {
+        estadoPill.textContent = 'Cerrada';
+        estadoPill.className = 'estado-caja-pill cerrada';
+        ingresos = parseFloat(data.cierre.ingresos_efectivo) + parseFloat(data.cierre.ingresos_otros);
+        egresos = parseFloat(data.cierre.gastos_efectivo);
+        balance = parseFloat(data.cierre.monto_contado);
+      } else if (data.estado === 'abierta') {
+        estadoPill.textContent = 'Abierta';
+        estadoPill.className = 'estado-caja-pill abierta';
+        ingresos = data.ingresos_efectivo + data.ingresos_otros;
+        egresos = data.gastos_efectivo + data.gastos_otros;
+        balance = data.balance_actual;
+        cantidad = data.ingresos_cantidad + data.gastos_cantidad;
+      } else {
+        estadoPill.textContent = 'Sin abrir';
+        estadoPill.className = 'estado-caja-pill sin_abrir';
+        ingresos = data.ingresos_efectivo + data.ingresos_otros;
+        egresos = data.gastos_efectivo + data.gastos_otros;
+        balance = data.apertura_sugerida + ingresos - egresos;
+        cantidad = data.ingresos_cantidad + data.gastos_cantidad;
+      }
+
+      document.getElementById('kpiBalance').textContent = formatoMoneda(balance);
+      document.getElementById('kpiIngresos').textContent = formatoMoneda(ingresos);
+      document.getElementById('kpiEgresos').textContent = formatoMoneda(egresos);
+      document.getElementById('kpiMovimientos').textContent = cantidad;
+
+      const acciones = document.getElementById('dashAccionesRapidas');
+      acciones.innerHTML = `
+        <button class="btn" style="background:var(--accent); color:#fff; font-weight:700;" onclick="cambiarTab('cierre')">
+          <i class="bi bi-lock me-1"></i>${data.estado === 'sin_abrir' ? 'Abrir caja' : data.estado === 'abierta' ? 'Ir a cerrar caja' : 'Ver cierre de hoy'}
+        </button>
+        <button class="btn btn-outline-secondary" onclick="cambiarTab('ingresos')"><i class="bi bi-plus-circle me-1"></i>Registrar ingreso</button>
+        <a href="gastos.html" class="link-out"><span><i class="bi bi-receipt-cutoff me-1"></i>Gestionar gastos</span> <i class="bi bi-arrow-right"></i></a>
+        <button class="btn btn-outline-secondary" onclick="cambiarTab('reportes')"><i class="bi bi-bar-chart-line me-1"></i>Ver reportes</button>
+      `;
+    } catch (error) {
+      console.error(error);
+    }
+
+    try {
+      const res = await fetch(`${API}/caja/movimientos?pageSize=8${sufijoSucursal('&')}`, { headers: getAuthHeaders() });
+      const data = await res.json();
+      const box = document.getElementById('dashMovimientosRecientes');
+      if (!data.movimientos || data.movimientos.length === 0) {
+        box.innerHTML = '<p class="text-muted small mb-0">No hay movimientos registrados todavía.</p>';
+        return;
+      }
+      box.innerHTML = `<div class="list-group list-group-flush">${data.movimientos.map(m => `
+        <div class="list-group-item d-flex justify-content-between align-items-center px-0" style="background:transparent; border-color:var(--border);">
+          <div>
+            <span class="badge ${m.tipo === 'Ingreso' ? 'badge-tipo-ingreso' : 'badge-tipo-egreso'} me-2">${m.tipo}</span>
+            <span>${escapeHtml(m.concepto)}</span>
+            <div class="small text-muted">${escapeHtml(m.referencia)} · ${new Date(m.fecha).toLocaleDateString('es-DO')}</div>
+          </div>
+          <strong class="${m.tipo === 'Ingreso' ? '' : 'text-danger'}">${m.tipo === 'Ingreso' ? '+' : '-'}${formatoMoneda(m.monto)}</strong>
+        </div>`).join('')}</div>`;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  // ===== INGRESOS =====
+  async function initIngresos() {
+    document.getElementById('ingFecha').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('ingFiltroFecha').value = new Date().toISOString().slice(0, 10);
+    await cargarClientes();
+    llenarSelectClientes(document.getElementById('ingClienteId'));
+    document.getElementById('ingClienteBusqueda').addEventListener('input', (e) => llenarSelectClientes(document.getElementById('ingClienteId'), e.target.value));
+    document.getElementById('ingFiltroFecha').addEventListener('change', cargarIngresosHoy);
+    cargarIngresosHoy();
+  }
+
+  async function cargarIngresosHoy() {
+    const fecha = document.getElementById('ingFiltroFecha').value;
+    const tabla = document.getElementById('tablaIngresosHoy');
+    tabla.innerHTML = '<tr><td colspan="4" class="text-center py-3">Cargando...</td></tr>';
+    try {
+      const res = await fetch(`${API}/caja/movimientos?tipo=Ingreso&desde=${fecha}&hasta=${fecha}&pageSize=50${sufijoSucursal('&')}`, { headers: getAuthHeaders() });
+      const data = await res.json();
+      if (!data.movimientos || data.movimientos.length === 0) {
+        tabla.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-muted">Sin ingresos en esta fecha.</td></tr>';
+        return;
+      }
+      tabla.innerHTML = data.movimientos.map(m => `
+        <tr>
+          <td>${escapeHtml(m.referencia)}</td>
+          <td>${escapeHtml(m.concepto)}</td>
+          <td><span class="badge bg-secondary">${escapeHtml(m.metodo_pago)}</span></td>
+          <td class="text-end fw-bold">${formatoMoneda(m.monto)}</td>
+        </tr>`).join('');
+    } catch (error) {
+      tabla.innerHTML = '<tr><td colspan="4" class="text-center py-3 text-danger">Error al cargar.</td></tr>';
+    }
+  }
+
+  document.getElementById('formIngreso').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const tipo = document.getElementById('ingTipo').value;
+    const detalle = document.getElementById('ingConcepto').value.trim();
+    const concepto = detalle ? `${tipo}: ${detalle}` : tipo;
+    const clienteId = document.getElementById('ingClienteId').value;
+    if (!clienteId) return showToast('Selecciona un cliente.', 'warning');
+
+    const payload = {
+      cliente_id: clienteId,
+      fecha: document.getElementById('ingFecha').value,
+      concepto,
+      monto: document.getElementById('ingMonto').value,
+      estado: 'pagado',
+      metodo_pago: document.getElementById('ingMetodoPago').value,
+      observacion: document.getElementById('ingObservacion').value.trim()
+    };
+    try {
+      const res = await fetch(`${API}/pagos`, { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'No se pudo registrar el ingreso');
+      showToast('Ingreso registrado', 'success');
+      document.getElementById('formIngreso').reset();
+      document.getElementById('ingFecha').value = new Date().toISOString().slice(0, 10);
+      cargarIngresosHoy();
+    } catch (error) {
+      showToast(error.message, 'danger');
+    }
+  });
+
+  // ===== EGRESOS (resumen + enlace a gastos.html) =====
+  async function cargarEgresosTab() {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const inicioMes = hoy.slice(0, 8) + '01';
+
+    try {
+      const [resHoy, resMes] = await Promise.all([
+        fetch(`${API}/gastos?desde=${hoy}&hasta=${hoy}`, { headers: getAuthHeaders() }),
+        fetch(`${API}/gastos?desde=${inicioMes}&hasta=${hoy}`, { headers: getAuthHeaders() })
+      ]);
+      const gastosHoy = await resHoy.json();
+      const gastosMes = await resMes.json();
+
+      const totalHoy = gastosHoy.reduce((a, g) => a + parseFloat(g.monto), 0);
+      const totalMes = gastosMes.reduce((a, g) => a + parseFloat(g.monto), 0);
+      document.getElementById('egresoHoyTotal').textContent = formatoMoneda(totalHoy);
+      document.getElementById('egresoMesTotal').textContent = formatoMoneda(totalMes);
+
+      const porCategoria = {};
+      gastosMes.forEach(g => { porCategoria[g.categoria] = (porCategoria[g.categoria] || 0) + parseFloat(g.monto); });
+      const top = Object.entries(porCategoria).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const boxCat = document.getElementById('egresoPorCategoria');
+      boxCat.innerHTML = top.length === 0
+        ? '<p class="text-muted small mb-0">Sin gastos este mes.</p>'
+        : top.map(([cat, total]) => `
+          <div class="d-flex justify-content-between small mb-2">
+            <span>${escapeHtml(cat)}</span><strong>${formatoMoneda(total)}</strong>
+          </div>`).join('');
+
+      const tabla = document.getElementById('tablaEgresosRecientes');
+      const recientes = gastosMes.slice(0, 8);
+      tabla.innerHTML = recientes.length === 0
+        ? '<tr><td colspan="4" class="text-center py-3 text-muted">Sin egresos recientes.</td></tr>'
+        : recientes.map(g => `
+          <tr>
+            <td>${new Date(g.fecha).toLocaleDateString('es-DO')}</td>
+            <td>${escapeHtml(g.categoria)}</td>
+            <td>${escapeHtml(g.proveedor) || '-'}</td>
+            <td class="text-end fw-bold text-danger">${formatoMoneda(g.monto)}</td>
+          </tr>`).join('');
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  // ===== MOVIMIENTOS =====
+  async function cargarMovimientos(pagina) {
+    movPagina = pagina;
+    const tabla = document.getElementById('tablaMovimientos');
+    tabla.innerHTML = '<tr><td colspan="7" class="text-center py-3">Cargando...</td></tr>';
+
+    const params = new URLSearchParams({ page: movPagina, pageSize: 15 });
+    const busqueda = document.getElementById('movBusqueda').value.trim();
+    const desde = document.getElementById('movDesde').value;
+    const hasta = document.getElementById('movHasta').value;
+    const tipo = document.getElementById('movTipo').value;
+    if (busqueda) params.set('busqueda', busqueda);
+    if (desde) params.set('desde', desde);
+    if (hasta) params.set('hasta', hasta);
+    if (tipo) params.set('tipo', tipo);
+    if (sucursalIdActual) params.set('sucursal_id', sucursalIdActual);
+
+    try {
+      const res = await fetch(`${API}/caja/movimientos?${params}`, { headers: getAuthHeaders() });
+      const data = await res.json();
+      movTotalPaginas = data.totalPaginas;
+
+      if (!data.movimientos || data.movimientos.length === 0) {
+        tabla.innerHTML = '<tr><td colspan="7" class="text-center py-3 text-muted">No hay movimientos que coincidan.</td></tr>';
+      } else {
+        tabla.innerHTML = data.movimientos.map(m => `
+          <tr>
+            <td>${new Date(m.fecha).toLocaleDateString('es-DO')}</td>
+            <td><span class="badge ${m.tipo === 'Ingreso' ? 'badge-tipo-ingreso' : 'badge-tipo-egreso'}">${m.tipo}</span></td>
+            <td>${escapeHtml(m.concepto)}</td>
+            <td>${escapeHtml(m.referencia)}</td>
+            <td><span class="badge bg-secondary">${escapeHtml(m.metodo_pago)}</span></td>
+            <td class="text-end fw-bold ${m.tipo === 'Ingreso' ? '' : 'text-danger'}">${m.tipo === 'Ingreso' ? '+' : '-'}${formatoMoneda(m.monto)}</td>
+            <td>${escapeHtml(m.usuario) || '—'}</td>
+          </tr>`).join('');
+      }
+      document.getElementById('movInfoPagina').textContent = `Página ${data.page} de ${data.totalPaginas} · ${data.total} movimientos`;
+      document.getElementById('movBtnAnterior').disabled = movPagina <= 1;
+      document.getElementById('movBtnSiguiente').disabled = movPagina >= movTotalPaginas;
+    } catch (error) {
+      tabla.innerHTML = '<tr><td colspan="7" class="text-center py-3 text-danger">Error al cargar movimientos.</td></tr>';
+    }
+  }
+  function cambiarPaginaMovimientos(delta) {
+    const nueva = movPagina + delta;
+    if (nueva < 1 || nueva > movTotalPaginas) return;
+    cargarMovimientos(nueva);
+  }
+
+  // ===== CIERRE =====
+  function actualizarTextoFechaCierre() {
+    const d = new Date(fechaCierreSeleccionada + 'T00:00:00');
+    document.getElementById('cierreFechaTexto').textContent = d.toLocaleDateString('es-DO', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+  function cambiarDiaCierre(delta) {
+    const d = new Date(fechaCierreSeleccionada + 'T00:00:00');
+    d.setDate(d.getDate() + delta);
+    fechaCierreSeleccionada = d.toISOString().slice(0, 10);
+    cargarCierreTab();
+  }
+  function irAHoyCierre() {
+    fechaCierreSeleccionada = new Date().toISOString().slice(0, 10);
+    cargarCierreTab();
+  }
+
+  async function cargarCierreTab() {
+    actualizarTextoFechaCierre();
+    const content = document.getElementById('cierreContent');
+    content.innerHTML = '<p class="text-muted text-center">Cargando...</p>';
+
+    try {
+      const res = await fetch(`${API}/caja/resumen?fecha=${fechaCierreSeleccionada}${sufijoSucursal('&')}`, { headers: getAuthHeaders() });
+      const data = await res.json();
+      resumenCierreActual = data;
+
+      if (data.estado === 'cerrada') {
+        const c = data.cierre;
+        content.innerHTML = `
+          <div class="glass-card p-4 text-center">
+            <div class="pos-esperado-label">Caja cerrada</div>
+            <div class="pos-esperado-monto">${formatoMoneda(c.monto_contado)}</div>
+            ${badgeDiferenciaHtml(c.diferencia)}
+            <hr style="border-color:var(--border)" />
+            <div class="row g-3 text-center">
+              <div class="col"><div class="small text-muted">Apertura</div><div class="fw-bold">${formatoMoneda(c.monto_apertura)}</div></div>
+              <div class="col"><div class="small text-muted">Ingresos efectivo</div><div class="fw-bold">${formatoMoneda(c.ingresos_efectivo)}</div></div>
+              <div class="col"><div class="small text-muted">Gastos efectivo</div><div class="fw-bold">${formatoMoneda(c.gastos_efectivo)}</div></div>
+              <div class="col"><div class="small text-muted">Esperado</div><div class="fw-bold">${formatoMoneda(c.monto_esperado)}</div></div>
+            </div>
+            ${c.notas ? `<div class="mt-3 small text-muted">"${escapeHtml(c.notas)}"</div>` : ''}
+            <div class="small text-muted mt-2">Cerrado por ${escapeHtml(c.cerrado_por_nombre) || '—'}</div>
+          </div>`;
+        return;
+      }
+
+      if (data.estado === 'sin_abrir') {
+        content.innerHTML = `
+          <div class="glass-card p-4" style="max-width:420px; margin:0 auto;">
+            <div class="section-title justify-content-center"><i class="bi bi-unlock"></i> Abrir caja</div>
+            <label class="form-label">Monto de apertura</label>
+            <input type="number" id="montoAperturaAbrir" class="form-control mb-3" min="0" step="0.01" value="${data.apertura_sugerida.toFixed(2)}" />
+            <label class="form-label">Notas (opcional)</label>
+            <input type="text" id="notasApertura" class="form-control mb-3" placeholder="Ej. fondo fijo de caja chica" />
+            <button class="btn w-100" style="background:var(--accent); color:#fff; font-weight:700;" onclick="abrirCaja()">Abrir caja del día</button>
+          </div>`;
+        return;
+      }
+
+      // estado === 'abierta' → pantalla de cierre en dos columnas (izquierda: resumen, derecha: contar)
+      const esperado = data.balance_actual;
+      content.innerHTML = `
+        <div class="row g-4">
+          <div class="col-lg-6">
+            <div class="glass-card p-4 h-100">
+              <div class="section-title"><i class="bi bi-info-circle"></i> Resumen del día</div>
+              <div class="small text-muted mb-1">Apertura</div>
+              <div class="d-flex justify-content-between mb-2">
+                <span>${formatoMoneda(data.apertura.monto_apertura)}</span>
+                <span class="small text-muted">${escapeHtml(data.apertura.abierto_por_nombre)} · ${new Date(data.apertura.hora_apertura).toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+              <hr style="border-color:var(--border)" />
+              <div class="d-flex justify-content-between mb-2"><span>Ingresos efectivo</span><strong class="text-success">+${formatoMoneda(data.ingresos_efectivo)}</strong></div>
+              <div class="d-flex justify-content-between mb-2"><span>Ingresos otros métodos</span><strong>${formatoMoneda(data.ingresos_otros)}</strong></div>
+              <div class="d-flex justify-content-between mb-2"><span>Gastos efectivo</span><strong class="text-danger">-${formatoMoneda(data.gastos_efectivo)}</strong></div>
+              <div class="d-flex justify-content-between mb-2"><span>Gastos otros métodos</span><strong>${formatoMoneda(data.gastos_otros)}</strong></div>
+              <hr style="border-color:var(--border)" />
+              <div class="pos-esperado-label">Efectivo esperado</div>
+              <div class="pos-esperado-monto">${formatoMoneda(esperado)}</div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="glass-card p-4 h-100 text-center">
+              <div class="section-title justify-content-center"><i class="bi bi-calculator"></i> Contar caja</div>
+              <input type="number" id="montoContado" class="pos-input-contado" placeholder="0.00" min="0" step="0.01" oninput="recalcularDiferenciaCierre(${esperado})" />
+              <div class="pos-diferencia d-none" id="posDiferenciaBox"></div>
+              <input type="text" id="cierreNotas" class="form-control mt-3" placeholder="Notas (opcional)" />
+              <button class="btn w-100 mt-3" id="btnCerrarCaja" style="background:var(--accent); color:#fff; font-weight:700;" disabled onclick="cerrarCaja()">Cerrar caja del día</button>
+            </div>
+          </div>
+        </div>`;
+    } catch (error) {
+      console.error(error);
+      content.innerHTML = '<p class="text-danger text-center">Error al cargar el resumen de caja.</p>';
+    }
+  }
+
+  async function abrirCaja() {
+    const monto = parseFloat(document.getElementById('montoAperturaAbrir').value);
+    const notas = document.getElementById('notasApertura').value.trim();
+    if (isNaN(monto) || monto < 0) return showToast('Ingresa un monto de apertura válido.', 'warning');
+    try {
+      const res = await fetch(`${API}/caja/apertura?${sufijoSucursal('')}`, {
+        method: 'POST', headers: getAuthHeaders(),
+        body: JSON.stringify({ fecha: fechaCierreSeleccionada, monto_apertura: monto, notas })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'No se pudo abrir la caja');
+      showToast('Caja abierta correctamente', 'success');
+      cargarCierreTab();
+    } catch (error) {
+      showToast(error.message, 'danger');
+    }
+  }
+
+  function recalcularDiferenciaCierre(esperado) {
+    const input = document.getElementById('montoContado');
+    const box = document.getElementById('posDiferenciaBox');
+    const btn = document.getElementById('btnCerrarCaja');
+    if (input.value === '') { box.classList.add('d-none'); btn.disabled = true; return; }
+
+    const contado = parseFloat(input.value) || 0;
+    const diferencia = contado - esperado;
+    const clase = claseDiferencia(diferencia);
+    box.classList.remove('d-none', 'cuadra', 'sobra', 'falta');
+    box.classList.add(clase);
+    if (clase === 'cuadra') box.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>La caja cuadra<span class="sub">Contado = Esperado</span>';
+    else if (clase === 'sobra') box.innerHTML = `<i class="bi bi-arrow-up-circle-fill me-2"></i>Sobran ${formatoMoneda(diferencia)}<span class="sub">Hay más efectivo del esperado</span>`;
+    else box.innerHTML = `<i class="bi bi-exclamation-triangle-fill me-2"></i>Faltan ${formatoMoneda(Math.abs(diferencia))}<span class="sub">Hay menos efectivo del esperado</span>`;
+    btn.disabled = false;
+  }
+
+  async function cerrarCaja() {
+    const contado = parseFloat(document.getElementById('montoContado').value);
+    const notas = document.getElementById('cierreNotas').value.trim();
+    if (isNaN(contado)) return showToast('Ingresa el monto contado.', 'warning');
+    if (!confirm('¿Confirmar el cierre de caja? Una vez cerrada no se puede editar, solo eliminar.')) return;
+
+    try {
+      const res = await fetch(`${API}/caja/cierres?${sufijoSucursal('')}`, {
+        method: 'POST', headers: getAuthHeaders(),
+        body: JSON.stringify({ fecha: fechaCierreSeleccionada, monto_contado: contado, notas })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'No se pudo cerrar la caja');
+      showToast('Caja cerrada correctamente', 'success');
+      cargarCierreTab();
+      cargarCierres();
+    } catch (error) {
+      showToast(error.message, 'danger');
+    }
+  }
+
+  async function cargarCierres() {
+    const tabla = document.getElementById('tablaCierres');
+    tabla.innerHTML = '<tr><td colspan="9" class="py-3">Cargando...</td></tr>';
+    try {
+      const res = await fetch(`${API}/caja/cierres?${sufijoSucursal('')}`, { headers: getAuthHeaders() });
+      const cierres = await res.json();
+      if (!Array.isArray(cierres) || cierres.length === 0) {
+        tabla.innerHTML = '<tr><td colspan="9" class="py-3 text-muted">Todavía no hay cierres de caja registrados.</td></tr>';
+        return;
+      }
+      tabla.innerHTML = cierres.map(c => `
+        <tr>
+          <td>${new Date(c.fecha).toLocaleDateString('es-DO')}</td>
+          <td>${formatoMoneda(c.monto_apertura)}</td>
+          <td>${formatoMoneda(c.ingresos_efectivo)}</td>
+          <td>${formatoMoneda(c.gastos_efectivo)}</td>
+          <td>${formatoMoneda(c.monto_esperado)}</td>
+          <td>${formatoMoneda(c.monto_contado)}</td>
+          <td>${badgeDiferenciaHtml(c.diferencia)}</td>
+          <td>${escapeHtml(c.cerrado_por_nombre) || '—'}</td>
+          <td><button class="btn btn-sm btn-outline-danger" onclick="eliminarCierre(${c.id})"><i class="bi bi-trash"></i></button></td>
+        </tr>`).join('');
+    } catch (error) {
+      tabla.innerHTML = '<tr><td colspan="9" class="py-3 text-danger">Error al cargar el historial.</td></tr>';
+    }
+  }
+
+  async function eliminarCierre(id) {
+    if (!confirm('¿Eliminar este cierre de caja? Esto no se puede deshacer.')) return;
+    try {
+      await fetch(`${API}/caja/cierres/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+      showToast('Cierre eliminado', 'success');
+      cargarCierreTab();
+      cargarCierres();
+    } catch (error) {
+      showToast('No se pudo eliminar el cierre.', 'danger');
+    }
+  }
+
+  // ===== REPORTES =====
+  function initReportes() {
+    const hoy = new Date().toISOString().slice(0, 10);
+    document.getElementById('repDesde').value = hoy.slice(0, 8) + '01';
+    document.getElementById('repHasta').value = hoy;
+    cargarReportes();
+  }
+
+  async function cargarReportes() {
+    const desde = document.getElementById('repDesde').value;
+    const hasta = document.getElementById('repHasta').value;
+    try {
+      const res = await fetch(`${API}/caja/reportes?desde=${desde}&hasta=${hasta}${sufijoSucursal('&')}`, { headers: getAuthHeaders() });
+      const data = await res.json();
+
+      document.getElementById('repIngresos').textContent = formatoMoneda(data.totales.ingresos);
+      document.getElementById('repEgresos').textContent = formatoMoneda(data.totales.egresos);
+      document.getElementById('repBalance').textContent = formatoMoneda(data.totales.balance);
+
+      const boxMetodo = document.getElementById('repPorMetodo');
+      boxMetodo.innerHTML = data.porMetodoPago.length === 0 ? '<p class="text-muted small mb-0">Sin datos.</p>' : data.porMetodoPago.map(m => `
+        <div class="mb-2">
+          <div class="d-flex justify-content-between small mb-1"><span>${escapeHtml(m.metodo_pago)}</span><span>${formatoMoneda(m.ingresos)} / <span class="text-danger">${formatoMoneda(m.egresos)}</span></span></div>
+        </div>`).join('');
+
+      const boxCat = document.getElementById('repPorCategoria');
+      boxCat.innerHTML = data.porCategoria.length === 0 ? '<p class="text-muted small mb-0">Sin egresos en este período.</p>' : data.porCategoria.map(c => `
+        <div class="d-flex justify-content-between small mb-2"><span>${escapeHtml(c.categoria)} <span class="text-muted">(${c.cantidad})</span></span><strong>${formatoMoneda(c.total)}</strong></div>
+      `).join('');
+
+      const ctx = document.getElementById('repGraficoDia').getContext('2d');
+      if (graficoReportes) graficoReportes.destroy();
+      graficoReportes = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.porDia.map(d => new Date(d.fecha).toLocaleDateString('es-DO', { day: '2-digit', month: 'short' })),
+          datasets: [
+            { label: 'Ingresos', data: data.porDia.map(d => d.ingresos), backgroundColor: '#0d9488' },
+            { label: 'Egresos', data: data.porDia.map(d => d.egresos), backgroundColor: '#ef4444' }
+          ]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      });
+    } catch (error) {
+      console.error(error);
+      showToast('No se pudo generar el reporte.', 'danger');
+    }
+  }
+
+  window.onload = async function () {
+    if (typeof requireAdminPage === 'function' && !requireAdminPage()) return;
+    await initSelectorSucursal();
+    cargarDashboard();
+    cargarCierres();
+  };
+</script>
+</body>
+</html>

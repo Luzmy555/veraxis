@@ -30,9 +30,9 @@
 <!-- Header -->
 <nav class="navbar navbar-dark bg-dark px-4 py-3">
   <div class="d-flex align-items-center">
-    <img src="assets/logo.png" alt="Logo Montas Auto Academy" width="50" class="me-2" />
+    <img data-branding="logo" src="assets/logo.png" alt="Logo Montas Auto Academy" width="50" class="me-2" />
     <div class="text-white">
-      <h1 class="h5 mb-0">Montas Auto Academy</h1>
+      <h1 class="h5 mb-0" data-branding="nombre">Montas Auto Academy</h1>
       <small>Gestión de Clientes</small>
     </div>
   </div>
@@ -198,6 +198,14 @@
             </select>
           </div>
         </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label for="sucursalId" class="form-label">Sucursal</label>
+            <select id="sucursalId" class="form-select">
+              <option value="">Sin asignar</option>
+            </select>
+          </div>
+        </div>
 
         <!-- INFORMACIÓN FINANCIERA -->
         <h6 class="text-primary fw-bold mb-3 mt-4">Información Financiera</h6>
@@ -225,6 +233,9 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/authHelpers.js"></script>
+<script>aplicarBranding();</script>
 <script>
   function filtrarClientes() {
     const busqueda = document.getElementById('buscarCliente').value.toLowerCase();
@@ -265,7 +276,7 @@
     tabla.innerHTML = "<tr><td colspan='4'>Cargando...</td></tr>";
 
     try {
-      const res = await fetch("http://localhost:4000/api/clientes");
+      const res = await fetch(API_BASE + "/api/clientes");
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
       }
@@ -280,13 +291,12 @@
       clientes.forEach(c => {
         tabla.innerHTML += `
           <tr>
-            <td>${c.nombre}</td>
-            <td>${c.telefono}</td>
+            <td>${escapeHtml(c.nombre)}</td>
+            <td>${escapeHtml(c.telefono)}</td>
             <td>${c.fecha ? new Date(c.fecha).toLocaleDateString("es-DO") : "Sin fecha"}</td>
             <td>
               <a href="expediente.html?id=${c.id}" class="btn btn-sm btn-info">Ver Expediente</a>
-              <a href="detalle-cliente.html?id=${c.id}" class="btn btn-sm btn-primary">Ver</a>
-              <a href="detalle-cliente.html?id=${c.id}&edit=true" class="btn btn-sm btn-warning">Editar</a>
+              <a href="expediente.html?id=${c.id}&edit=true" class="btn btn-sm btn-warning">Editar</a>
               <button class="btn btn-sm btn-danger" onclick="eliminarCliente(${c.id})">Eliminar</button>
             </td>
           </tr>`;
@@ -301,7 +311,7 @@
   async function subirFotoCliente(id, file) {
     const formData = new FormData();
     formData.append('foto', file);
-    const res = await fetch(`http://localhost:4000/api/clientes/${id}/foto`, {
+    const res = await fetch(`${API_BASE}/api/clientes/${id}/foto`, {
       method: 'POST',
       body: formData
     });
@@ -313,7 +323,7 @@
 
   async function eliminarCliente(id) {
     if (confirm("¿Seguro que deseas eliminar este cliente?")) {
-      const res = await fetch(`http://localhost:4000/api/clientes/${id}`, { method: "DELETE" });
+      const res = await fetch(`${API_BASE}/api/clientes/${id}`, { method: "DELETE" });
       if (res.ok) {
         alert("Cliente eliminado");
         cargarClientes();
@@ -366,11 +376,12 @@
       direccion: document.getElementById("direccion").value.trim() || null,
       horas_requeridas: parseInt(document.getElementById("horasRequeridas").value) || 0,
       horas_completadas: parseInt(document.getElementById("horasCompletadas").value) || 0,
-      estado_cliente: document.getElementById("estadoCliente").value || 'Inscrito'
+      estado_cliente: document.getElementById("estadoCliente").value || 'Inscrito',
+      sucursal_id: document.getElementById("sucursalId").value || null
     };
 
     try {
-      const response = await fetch("http://localhost:4000/api/clientes", {
+      const response = await fetch(API_BASE + "/api/clientes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
@@ -404,7 +415,7 @@
   async function cargarCursosCliente() {
     const cursoSelect = document.getElementById('cursoId');
     try {
-      const res = await fetch('http://localhost:4000/api/cursos');
+      const res = await fetch(API_BASE + '/api/cursos');
       if (!res.ok) {
         console.error('Error cargando cursos:', res.status);
         return;
@@ -426,7 +437,7 @@
   async function cargarInstructoresCliente() {
     const instructorSelect = document.getElementById('instructorId');
     try {
-      const res = await fetch('http://localhost:4000/api/instructores');
+      const res = await fetch(API_BASE + '/api/instructores');
       if (!res.ok) {
         console.error('Error cargando instructores:', res.status);
         return;
@@ -444,9 +455,27 @@
     }
   }
 
+  async function cargarSucursalesCliente() {
+    const select = document.getElementById('sucursalId');
+    try {
+      const res = await fetch(API_BASE + '/api/sucursales', { headers: getAuthHeaders() });
+      if (!res.ok) return;
+      const sedes = await res.json();
+      select.innerHTML = '<option value="">Sin asignar</option>';
+      sedes.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s.id;
+        option.textContent = s.nombre;
+        select.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error cargando sucursales:', error);
+    }
+  }
+
   async function cargarConfiguracionCliente() {
     try {
-      const res = await fetch('http://localhost:4000/api/configuracion');
+      const res = await fetch(API_BASE + '/api/configuracion');
       if (!res.ok) {
         console.error('Error cargando configuración:', res.status);
         return;
@@ -477,7 +506,7 @@
     }
 
     try {
-      const res = await fetch(`http://localhost:4000/api/cursos/${cursoId}`);
+      const res = await fetch(`${API_BASE}/api/cursos/${cursoId}`);
       if (!res.ok) {
         console.error('Error cargando curso seleccionado:', res.status);
         return;
@@ -505,6 +534,7 @@
   document.getElementById('modalAgregarCliente').addEventListener('show.bs.modal', function() {
     cargarCursosCliente();
     cargarInstructoresCliente();
+    cargarSucursalesCliente();
     cargarConfiguracionCliente();
   });
 

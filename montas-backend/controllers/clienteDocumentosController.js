@@ -16,11 +16,11 @@ exports.subirDocumento = async (req, res) => {
     if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
     const tipo = req.body.tipo || req.query.tipo || 'otro';
-    const uploadedBy = req.header('x-user-id') || null;
-    const uploadedByRole = (req.header('x-user-role') || '').toString().toLowerCase();
+    const uploadedBy = req.user.id;
+    const uploadedByRole = req.user.rol;
 
     // Validación de roles: solo administradores o instructores pueden subir
-    if (!['admin', 'administrador', 'instructor'].includes(uploadedByRole)) {
+    if (!['admin', 'administrador', 'instructor', 'usuario'].includes(uploadedByRole)) {
       return res.status(403).json({ error: 'No autorizado para subir documentos' });
     }
 
@@ -84,7 +84,7 @@ exports.eliminarDocumento = async (req, res) => {
     const result = await pool.query('SELECT * FROM cliente_documentos WHERE id = $1 AND cliente_id = $2', [docId, id]);
     const doc = result.rows[0];
     if (!doc) return res.status(404).json({ error: 'Documento no encontrado' });
-    const requesterRole = (req.header('x-user-role') || '').toString().toLowerCase();
+    const requesterRole = req.user.rol;
     // Solo administradores pueden eliminar documentos
     if (!['admin', 'administrador'].includes(requesterRole)) {
       return res.status(403).json({ error: 'No autorizado para eliminar documentos' });

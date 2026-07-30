@@ -3,15 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reportes de Ventas | Montas Auto Academy</title>
+  <title>Reportes Ejecutivos | Montas Auto Academy</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="js/config.js"></script>
   <script>
     if (!localStorage.getItem('sesionActiva')) {
       window.location.href = 'login.html';
     }
   </script>
-  
+
   <style>
     body {
       background-color: #f8f9fa;
@@ -22,37 +24,51 @@
       }
     }
     @media print {
-  #graficoVentas {
-    display: none !important;
-  }
-}
+      #graficoVentas, #graficoCaja, #graficoExamenes {
+        display: none !important;
+      }
+    }
 
-#printResumen {
-  font-size: 0.95rem;
-  color: #444;
-}
+    #printResumen {
+      font-size: 0.95rem;
+      color: #444;
+    }
 
-@media print {
-  #rangoFechas {
-    margin-bottom: 1rem;
-    display: block !important;
-  }
-}
+    @media print {
+      #rangoFechas {
+        margin-bottom: 1rem;
+        display: block !important;
+      }
+    }
 
-
-
+    .stat-card {
+      border: none;
+      border-radius: 0.75rem;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .stat-card .label {
+      font-size: 0.8rem;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .stat-card .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
   </style>
- 
+
 </head>
 <body>
 
 <header class="bg-dark text-white py-3 px-4">
   <div class="container d-flex align-items-center justify-content-between">
     <div class="d-flex align-items-center">
-      <img src="assets/logo.png" alt="Logo" width="50" class="me-3" style="filter: drop-shadow(0 0 5px #fff);" />
+      <img src="assets/logo.png" alt="Logo" width="50" class="me-3" style="filter: drop-shadow(0 0 5px #fff);" data-branding="logo" />
       <div>
-        <h1 class="h5 mb-0">Montas Auto Academy</h1>
-        <small>Reporte de Ventas</small>
+        <h1 class="h5 mb-0" data-branding="nombre">Montas Auto Academy</h1>
+        <small>Reportes Ejecutivos</small>
       </div>
     </div>
     <div class="ms-auto no-print">
@@ -63,98 +79,242 @@
 </header>
 
 <main class="container my-5">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="h5">Pagos Registrados</h2>
-    <button onclick="window.print()" class="btn btn-primary no-print">Imprimir Reporte</button>
-  </div>
-<!-- Rango de fechas visible solo en impresión -->
-<div id="rangoFechas" class="my-3" style="display: none;">
-  <div class="border-start border-4 border-primary ps-3">
-    <strong>Rango seleccionado:</strong>
-    <span id="textoRango"></span>
-  </div>
-</div>
 
-  <!-- Filtros -->
+  <!-- Rango de fechas visible solo en impresión -->
+  <div id="rangoFechas" class="my-3" style="display: none;">
+    <div class="border-start border-4 border-primary ps-3">
+      <strong>Rango seleccionado:</strong>
+      <span id="textoRango"></span>
+    </div>
+  </div>
+
   <div class="row g-3 align-items-end mb-4 no-print">
     <div class="col-md-3">
-      <label class="form-label">Cliente</label>
-      <select id="filtroCliente" class="form-select">
-        <option value="">Todos</option>
-      </select>
-    </div>
-    <div class="col-md-3">
-      <label class="form-label">Desde</label>
-      <input type="date" id="filtroDesde" class="form-control" />
+      <label class="form-label">Desde (Flujo de Caja / Instructores / Exámenes / Cursos)</label>
+      <input type="date" id="rangoDesde" class="form-control" />
     </div>
     <div class="col-md-3">
       <label class="form-label">Hasta</label>
-      <input type="date" id="filtroHasta" class="form-control" />
+      <input type="date" id="rangoHasta" class="form-control" />
     </div>
-    <div class="col-md-3">
-      <label class="form-label">Concepto</label>
-      <select id="filtroConcepto" class="form-select">
-        <option value="">Todos</option>
-        <option value="Inscripción">Inscripción</option>
-        <option value="Pago semanal">Pago semanal</option>
-        <option value="Abono">Abono</option>
+    <div class="col-md-3" id="wrapperSedeReportes" style="display:none">
+      <label class="form-label">Sede (Flujo de Caja)</label>
+      <select id="filtroSedeReportes" class="form-select">
+        <option value="">Todas las sedes</option>
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label">Estado del pago</label>
-      <select id="filtroEstado" class="form-select">
-        <option value="">Todos</option>
-        <option value="pagado">Pagado</option>
-        <option value="pendiente">Pendiente</option>
-      </select>
+      <button id="btnAplicarRango" class="btn btn-primary">Aplicar rango</button>
     </div>
-    
+    <div class="col-md-3 text-end">
+      <button onclick="window.print()" class="btn btn-outline-secondary">Imprimir Reporte</button>
+    </div>
   </div>
 
-  <!-- Tabla -->
-  <div class="table-responsive">
-    <table class="table table-bordered table-hover">
-      <thead class="table-dark">
-        <tr>
-          <th>Fecha</th>
-          <th>Cliente</th>
-          <th>Concepto</th>
-          <th>Monto</th>
-        </tr>
-      </thead>
-      <tbody id="tablaPagos">
-        <!-- Pagos cargados dinámicamente -->
-      </tbody>
-      <tfoot>
-        <tr class="table-light">
-          <td colspan="3" class="text-end"><strong>Total:</strong></td>
-          <td id="totalIngresos" class="fw-bold text-success">RD$ 0</td>
-        </tr>
-      </tfoot>
-    </table>
+  <ul class="nav nav-tabs no-print" id="reportesTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="tab-ventas-btn" data-bs-toggle="tab" data-bs-target="#tab-ventas" type="button" role="tab">Ventas y Pagos</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-caja-btn" data-bs-toggle="tab" data-bs-target="#tab-caja" type="button" role="tab">Flujo de Caja</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-instructores-btn" data-bs-toggle="tab" data-bs-target="#tab-instructores" type="button" role="tab">Instructores</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-examenes-btn" data-bs-toggle="tab" data-bs-target="#tab-examenes" type="button" role="tab">Exámenes</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="tab-cursos-btn" data-bs-toggle="tab" data-bs-target="#tab-cursos" type="button" role="tab">Cursos</button>
+    </li>
+  </ul>
+
+  <div class="tab-content border border-top-0 p-4 bg-white rounded-bottom">
+
+    <!-- ===================== VENTAS Y PAGOS (existente) ===================== -->
+    <div class="tab-pane fade show active" id="tab-ventas" role="tabpanel">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="h5 mb-0">Pagos Registrados</h2>
+      </div>
+
+      <div class="row g-3 align-items-end mb-4 no-print">
+        <div class="col-md-3">
+          <label class="form-label">Cliente</label>
+          <select id="filtroCliente" class="form-select">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Desde</label>
+          <input type="date" id="filtroDesde" class="form-control" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Hasta</label>
+          <input type="date" id="filtroHasta" class="form-control" />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Concepto</label>
+          <select id="filtroConcepto" class="form-select">
+            <option value="">Todos</option>
+            <option value="Inscripción">Inscripción</option>
+            <option value="Pago semanal">Pago semanal</option>
+            <option value="Abono">Abono</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Estado del pago</label>
+          <select id="filtroEstado" class="form-select">
+            <option value="">Todos</option>
+            <option value="pagado">Pagado</option>
+            <option value="pendiente">Pendiente</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+          <thead class="table-dark">
+            <tr>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Concepto</th>
+              <th>Monto</th>
+            </tr>
+          </thead>
+          <tbody id="tablaPagos"></tbody>
+          <tfoot>
+            <tr class="table-light">
+              <td colspan="3" class="text-end"><strong>Total:</strong></td>
+              <td id="totalIngresos" class="fw-bold text-success">RD$ 0</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div id="graficoVentas" class="mt-5">
+        <h5 class="mb-3">Gráfico de Ventas Mensuales</h5>
+        <canvas id="canvasGrafico" height="100"></canvas>
+      </div>
+    </div>
+
+    <!-- ===================== FLUJO DE CAJA ===================== -->
+    <div class="tab-pane fade" id="tab-caja" role="tabpanel">
+      <h2 class="h5 mb-4">Flujo de Caja</h2>
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <div class="stat-card p-3">
+            <div class="label">Ingresos</div>
+            <div class="value text-success" id="cajaIngresos">RD$ 0</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-card p-3">
+            <div class="label">Egresos</div>
+            <div class="value text-danger" id="cajaEgresos">RD$ 0</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-card p-3">
+            <div class="label">Balance</div>
+            <div class="value" id="cajaBalance">RD$ 0</div>
+          </div>
+        </div>
+      </div>
+      <div id="graficoCaja" class="mb-4">
+        <canvas id="canvasCaja" height="90"></canvas>
+      </div>
+      <h6>Egresos por categoría</h6>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered">
+          <thead class="table-light"><tr><th>Categoría</th><th>Cantidad</th><th class="text-end">Total</th></tr></thead>
+          <tbody id="tablaCajaCategorias"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===================== INSTRUCTORES ===================== -->
+    <div class="tab-pane fade" id="tab-instructores" role="tabpanel">
+      <h2 class="h5 mb-4">Rendimiento por Instructor</h2>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-dark">
+            <tr>
+              <th>Instructor</th>
+              <th>Estudiantes activos</th>
+              <th>Estudiantes totales</th>
+              <th>Avance de horas (prom.)</th>
+              <th>Promedio evaluaciones</th>
+              <th>Aprobación examen práctico</th>
+              <th class="text-end">Ingresos generados</th>
+            </tr>
+          </thead>
+          <tbody id="tablaInstructores"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===================== EXAMENES ===================== -->
+    <div class="tab-pane fade" id="tab-examenes" role="tabpanel">
+      <h2 class="h5 mb-4">Exámenes</h2>
+      <div class="row">
+        <div class="col-md-5">
+          <div id="graficoExamenes">
+            <canvas id="canvasExamenes" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-md-7">
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead class="table-dark">
+                <tr><th>Tipo</th><th>Aprobados</th><th>Reprobados</th><th>Pendientes</th><th>Tasa de aprobación</th></tr>
+              </thead>
+              <tbody id="tablaExamenes"></tbody>
+            </table>
+          </div>
+          <p class="mb-0"><strong>Tasa de aprobación global:</strong> <span id="tasaAprobacionGlobal">—</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================== CURSOS ===================== -->
+    <div class="tab-pane fade" id="tab-cursos" role="tabpanel">
+      <h2 class="h5 mb-4">Estudiantes e Ingresos por Curso</h2>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+          <thead class="table-dark">
+            <tr><th>Curso</th><th>Estudiantes</th><th class="text-end">Ingresos (en el rango)</th></tr>
+          </thead>
+          <tbody id="tablaCursos"></tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 
- 
-<!-- Gráfico -->
-<div id="graficoVentas" class="mt-5">
-  <h5 class="mb-3">Gráfico de Ventas Mensuales</h5>
-  <canvas id="canvasGrafico" height="100"></canvas>
-</div>
+</main>
 
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/authHelpers.js"></script>
 <script>
+  requireAdminPage();
+  aplicarBranding();
+
   let pagos = [];
   let clientes = [];
-  let chart;
+  let chartVentas, chartCaja, chartExamenes;
   const ctx = document.getElementById("canvasGrafico").getContext("2d");
+
+  function formatoMoneda(num) {
+    return `RD$ ${(parseFloat(num) || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  // ===================== VENTAS Y PAGOS =====================
 
   async function cargarPagosYClientes() {
     try {
       const [resPagos, resClientes] = await Promise.all([
-        fetch("http://localhost:4000/api/pagos"),
-        fetch("http://localhost:4000/api/clientes")
-      
-
+        fetch(API_BASE + "/api/pagos"),
+        fetch(API_BASE + "/api/clientes")
       ]);
 
       pagos = await resPagos.json();
@@ -180,106 +340,93 @@
   }
 
   function aplicarFiltros() {
-  const clienteId = document.getElementById("filtroCliente").value;
-  const desde = document.getElementById("filtroDesde").value;
-  const hasta = document.getElementById("filtroHasta").value;
-  const concepto = document.getElementById("filtroConcepto").value;
-  const estado = document.getElementById("filtroEstado").value;
+    const clienteId = document.getElementById("filtroCliente").value;
+    const desde = document.getElementById("filtroDesde").value;
+    const hasta = document.getElementById("filtroHasta").value;
+    const concepto = document.getElementById("filtroConcepto").value;
+    const estado = document.getElementById("filtroEstado").value;
 
-  const tbody = document.getElementById("tablaPagos");
-  tbody.innerHTML = "";
-  let total = 0;
+    const tbody = document.getElementById("tablaPagos");
+    tbody.innerHTML = "";
+    let total = 0;
 
-  // Mostrar el rango de fechas si se seleccionó algo
-  const rangoFechas = document.getElementById("rangoFechas");
-  const textoRango = document.getElementById("textoRango");
-  if (desde || hasta) {
-    rangoFechas.style.display = "block";
-    const desdeText = desde ? new Date(desde).toLocaleDateString("es-DO") : "Inicio";
-    const hastaText = hasta ? new Date(hasta).toLocaleDateString("es-DO") : "Hoy";
-    textoRango.textContent = `${desdeText} - ${hastaText}`;
-  } else {
-    rangoFechas.style.display = "none";
-    textoRango.textContent = "";
+    const rangoFechas = document.getElementById("rangoFechas");
+    const textoRango = document.getElementById("textoRango");
+    if (desde || hasta) {
+      rangoFechas.style.display = "block";
+      const desdeText = desde ? new Date(desde).toLocaleDateString("es-DO") : "Inicio";
+      const hastaText = hasta ? new Date(hasta).toLocaleDateString("es-DO") : "Hoy";
+      textoRango.textContent = `${desdeText} - ${hastaText}`;
+    } else {
+      rangoFechas.style.display = "none";
+      textoRango.textContent = "";
+    }
+
+    pagos.forEach(pago => {
+      const cliente = clientes.find(c => c.id === pago.cliente_id);
+      if (!cliente) return;
+
+      const fechaPago = new Date(pago.fecha).toISOString().split("T")[0];
+
+      if (clienteId && pago.cliente_id != clienteId) return;
+      if (desde && fechaPago < desde) return;
+      if (hasta && fechaPago > hasta) return;
+      if (concepto && pago.concepto !== concepto) return;
+      if (estado && pago.estado !== estado) return;
+
+      const monto = parseFloat(pago.monto) || 0;
+      total += monto;
+
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${new Date(pago.fecha).toLocaleDateString("es-DO")}</td>
+        <td>${escapeHtml(cliente.nombre)}</td>
+        <td>${escapeHtml(pago.concepto)}</td>
+        <td>${formatoMoneda(monto)}</td>
+      `;
+      tbody.appendChild(fila);
+    });
+
+    document.getElementById("totalIngresos").textContent = formatoMoneda(total);
   }
 
-  pagos.forEach(pago => {
-    const cliente = clientes.find(c => c.id === pago.cliente_id);
-    if (!cliente) return;
+  function actualizarGraficoMensual() {
+    const meses = {};
+    pagos.forEach(pago => {
+      const fecha = new Date(pago.fecha);
+      const mes = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
+      const monto = parseFloat(pago.monto) || 0;
+      if (!meses[mes]) meses[mes] = 0;
+      meses[mes] += monto;
+    });
 
-    const fechaPago = new Date(pago.fecha).toISOString().split("T")[0];
+    const labels = Object.keys(meses).sort();
+    const data = labels.map(m => meses[m]);
 
-    if (clienteId && pago.cliente_id != clienteId) return;
-    if (desde && fechaPago < desde) return;
-    if (hasta && fechaPago > hasta) return;
-    if (concepto && pago.concepto !== concepto) return;
-    if (estado && pago.estado !== estado) return;
+    if (chartVentas) chartVentas.destroy();
 
-    const monto = parseFloat(pago.monto) || 0;
-    total += monto;
-    const montoFormateado = monto.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-    const fila = document.createElement("tr");
-    fila.innerHTML = `
-      <td>${new Date(pago.fecha).toLocaleDateString("es-DO")}</td>
-      <td>${cliente.nombre}</td>
-      <td>${pago.concepto}</td>
-      <td>RD$ ${montoFormateado}</td>
-    `;
-    tbody.appendChild(fila);
-  });
-
-  const totalFormateado = total.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  document.getElementById("totalIngresos").textContent = `RD$ ${totalFormateado}`;
-}
-
-function actualizarGraficoMensual() {
-  const meses = {};
-  pagos.forEach(pago => {
-    const fecha = new Date(pago.fecha);
-    const mes = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, "0")}`;
-    const monto = parseFloat(pago.monto) || 0;
-    if (!meses[mes]) meses[mes] = 0;
-    meses[mes] += monto;
-  });
-
-  const labels = Object.keys(meses).sort();
-  const data = labels.map(m => meses[m]);
-
-  const ctx = document.getElementById("canvasGrafico").getContext("2d"); // ✅ CORREGIDO AQUÍ
-  if (chart) chart.destroy();
-
-  chart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: labels.map(m => new Date(m + "-01").toLocaleString("es-DO", { month: "long", year: "numeric" })),
-      datasets: [{
-        label: "Ingresos por mes (RD$)",
-        data,
-        backgroundColor: "#0d6efd"
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => `RD$ ${ctx.raw}`
-          }
-        }
+    chartVentas = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels.map(m => new Date(m + "-01").toLocaleString("es-DO", { month: "long", year: "numeric" })),
+        datasets: [{
+          label: "Ingresos por mes (RD$)",
+          data,
+          backgroundColor: "#0d6efd"
+        }]
       },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: value => `RD$ ${value}`
-          }
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => `RD$ ${ctx.raw}` } }
+        },
+        scales: {
+          y: { beginAtZero: true, ticks: { callback: value => `RD$ ${value}` } }
         }
       }
-    }
-  });
-}
+    });
+  }
 
   document.getElementById("filtroCliente").addEventListener("change", aplicarFiltros);
   document.getElementById("filtroDesde").addEventListener("change", aplicarFiltros);
@@ -287,7 +434,138 @@ function actualizarGraficoMensual() {
   document.getElementById("filtroConcepto").addEventListener("change", aplicarFiltros);
   document.getElementById("filtroEstado").addEventListener("change", aplicarFiltros);
 
-  window.onload = cargarPagosYClientes;
+  // ===================== FLUJO DE CAJA =====================
+
+  async function cargarFlujoCaja(desde, hasta) {
+    try {
+      const sede = document.getElementById('filtroSedeReportes').value;
+      const sufijoSede = sede ? `&sucursal_id=${sede}` : '';
+      const res = await fetch(`${API_BASE}/api/caja/reportes?desde=${desde}&hasta=${hasta}${sufijoSede}`);
+      const data = await res.json();
+
+      document.getElementById('cajaIngresos').textContent = formatoMoneda(data.totales.ingresos);
+      document.getElementById('cajaEgresos').textContent = formatoMoneda(data.totales.egresos);
+      const balanceEl = document.getElementById('cajaBalance');
+      balanceEl.textContent = formatoMoneda(data.totales.balance);
+      balanceEl.className = 'value ' + (data.totales.balance >= 0 ? 'text-success' : 'text-danger');
+
+      const tbody = document.getElementById('tablaCajaCategorias');
+      tbody.innerHTML = data.porCategoria.map(c => `
+        <tr><td>${escapeHtml(c.categoria)}</td><td>${c.cantidad}</td><td class="text-end">${formatoMoneda(c.total)}</td></tr>
+      `).join('') || '<tr><td colspan="3" class="text-center text-muted">Sin egresos en el rango</td></tr>';
+
+      const labels = data.porDia.map(d => new Date(d.fecha).toLocaleDateString('es-DO'));
+      if (chartCaja) chartCaja.destroy();
+      chartCaja = new Chart(document.getElementById('canvasCaja').getContext('2d'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Ingresos', data: data.porDia.map(d => d.ingresos), borderColor: '#198754', backgroundColor: '#19875433', tension: 0.2 },
+            { label: 'Egresos', data: data.porDia.map(d => d.egresos), borderColor: '#dc3545', backgroundColor: '#dc354533', tension: 0.2 }
+          ]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+      });
+    } catch (error) {
+      console.error('Error cargando flujo de caja:', error);
+    }
+  }
+
+  // ===================== INSTRUCTORES / EXAMENES / CURSOS =====================
+
+  async function cargarReporteEjecutivo(desde, hasta) {
+    try {
+      const res = await fetch(`${API_BASE}/api/reportes/ejecutivo?desde=${desde}&hasta=${hasta}`);
+      const data = await res.json();
+
+      const tbodyInstructores = document.getElementById('tablaInstructores');
+      tbodyInstructores.innerHTML = data.porInstructor.map(i => `
+        <tr>
+          <td>${escapeHtml(i.nombre)}</td>
+          <td>${i.estudiantes_activos}</td>
+          <td>${i.estudiantes_total}</td>
+          <td>${i.avance_horas_promedio !== null ? i.avance_horas_promedio.toFixed(1) + '%' : '—'}</td>
+          <td>${i.promedio_evaluaciones !== null ? i.promedio_evaluaciones.toFixed(1) : '—'}</td>
+          <td>${i.tasa_aprobacion_practico !== null ? i.tasa_aprobacion_practico.toFixed(0) + '% (' + i.practicos_aprobados + '/' + i.practicos_evaluados + ')' : '—'}</td>
+          <td class="text-end">${formatoMoneda(i.ingresos_generados)}</td>
+        </tr>
+      `).join('') || '<tr><td colspan="7" class="text-center text-muted">Sin instructores registrados</td></tr>';
+
+      const tipos = Object.keys(data.examenes.porTipo);
+      const tbodyExamenes = document.getElementById('tablaExamenes');
+      tbodyExamenes.innerHTML = tipos.map(tipo => {
+        const t = data.examenes.porTipo[tipo];
+        return `<tr>
+          <td>${escapeHtml(tipo)}</td><td>${t.Aprobado}</td><td>${t.Reprobado}</td><td>${t.Pendiente}</td>
+          <td>${t.tasa_aprobacion !== null ? t.tasa_aprobacion.toFixed(0) + '%' : '—'}</td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="5" class="text-center text-muted">Sin exámenes en el rango</td></tr>';
+
+      document.getElementById('tasaAprobacionGlobal').textContent =
+        data.examenes.tasa_aprobacion_global !== null ? data.examenes.tasa_aprobacion_global.toFixed(1) + '%' : 'Sin datos';
+
+      if (chartExamenes) chartExamenes.destroy();
+      const aprobados = tipos.reduce((acc, t) => acc + data.examenes.porTipo[t].Aprobado, 0);
+      const reprobados = tipos.reduce((acc, t) => acc + data.examenes.porTipo[t].Reprobado, 0);
+      const pendientes = tipos.reduce((acc, t) => acc + data.examenes.porTipo[t].Pendiente, 0);
+      chartExamenes = new Chart(document.getElementById('canvasExamenes').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Aprobados', 'Reprobados', 'Pendientes'],
+          datasets: [{ data: [aprobados, reprobados, pendientes], backgroundColor: ['#198754', '#dc3545', '#ffc107'] }]
+        },
+        options: { responsive: true }
+      });
+
+      const tbodyCursos = document.getElementById('tablaCursos');
+      tbodyCursos.innerHTML = data.porCurso.map(c => `
+        <tr><td>${escapeHtml(c.nombre)}</td><td>${c.estudiantes}</td><td class="text-end">${formatoMoneda(c.ingresos)}</td></tr>
+      `).join('') || '<tr><td colspan="3" class="text-center text-muted">Sin cursos registrados</td></tr>';
+
+    } catch (error) {
+      console.error('Error cargando reporte ejecutivo:', error);
+    }
+  }
+
+  function rangoActual() {
+    const hoy = new Date().toISOString().slice(0, 10);
+    const desde = document.getElementById('rangoDesde').value || hoy.slice(0, 8) + '01';
+    const hasta = document.getElementById('rangoHasta').value || hoy;
+    return { desde, hasta };
+  }
+
+  function cargarSeccionesEjecutivas() {
+    const { desde, hasta } = rangoActual();
+    cargarFlujoCaja(desde, hasta);
+    cargarReporteEjecutivo(desde, hasta);
+  }
+
+  document.getElementById('btnAplicarRango').addEventListener('click', cargarSeccionesEjecutivas);
+
+  async function initSelectorSedeReportes() {
+    if (!esUsuarioGlobal()) return;
+    document.getElementById('wrapperSedeReportes').style.display = '';
+    try {
+      const res = await fetch(`${API_BASE}/api/sucursales`, { headers: getAuthHeaders() });
+      const sedes = await res.json();
+      const select = document.getElementById('filtroSedeReportes');
+      sedes.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s.id;
+        option.textContent = s.nombre;
+        select.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error cargando sucursales:', error);
+    }
+  }
+
+  window.onload = async () => {
+    await initSelectorSedeReportes();
+    cargarPagosYClientes();
+    cargarSeccionesEjecutivas();
+  };
 </script>
 
 </body>

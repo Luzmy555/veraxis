@@ -21,9 +21,9 @@ exports.crearObservacion = async (req, res) => {
     const comentario = req.body.comentario;
     if (!comentario) return res.status(400).json({ error: 'Comentario requerido' });
 
-    const usuarioId = req.header('x-user-id') || null;
-    const usuarioRol = req.header('x-user-role') || null;
-    const usuarioNombre = req.header('x-user-name') || null;
+    const usuarioId = req.user.id;
+    const usuarioRol = req.user.rol;
+    const usuarioNombre = req.user.usuario;
 
     const result = await pool.query(
       `INSERT INTO cliente_observaciones (cliente_id, usuario_id, usuario_nombre, usuario_rol, comentario)
@@ -41,7 +41,7 @@ exports.crearObservacion = async (req, res) => {
 exports.eliminarObservacion = async (req, res) => {
   try {
     const { id, obsId } = req.params;
-    const requesterRole = (req.header('x-user-role') || '').toString().toLowerCase();
+    const requesterRole = req.user.rol;
     if (!['admin', 'administrador'].includes(requesterRole)) {
       return res.status(403).json({ error: 'No autorizado para eliminar observaciones' });
     }
