@@ -101,7 +101,10 @@ const { verifyToken } = require('./middlewares/authMiddleware');
 // /api/auth (login), /api/configuracion/branding (nombre/logo para login.html) y las
 // lecturas de la portada/galería pública (inicio.html, sin sesión) son las únicas rutas
 // públicas. POST/DELETE sobre esas mismas rutas siguen exigiendo token + admin.
+// Solo aplica a /api/*: un archivo estático que no existe (imagen, favicon, etc.) debe
+// dar 404 normal, no caer aquí y devolver 401 por no llevar Authorization.
 app.use((req, res, next) => {
+  if (!req.path.startsWith('/api/')) return next();
   if (req.path.startsWith('/api/auth')) return next();
   if (req.path === '/api/configuracion/branding') return next();
   if (req.method === 'GET' && (req.path === '/api/configuracion/portada' || req.path === '/api/galeria')) return next();

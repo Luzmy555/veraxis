@@ -6,3 +6,11 @@ montas-backend/logs/
 
 # Variables de entorno con credenciales reales — nunca deben subirse al repo
 montas-backend/.env
+
+# Dependencias: se reinstalan con "npm install", no deben vivir en el repo
+node_modules/
+
+# Configuración local del editor/herramientas de desarrollo, no es parte del proyecto
+.claude/
+.vscode/
+.vs/

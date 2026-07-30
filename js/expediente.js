@@ -607,7 +607,10 @@ async function loadEvaluaciones(id) {
   renderProgresoEvaluaciones(evaluaciones);
 
   if (!Array.isArray(evaluaciones) || evaluaciones.length === 0) {
-    container.innerHTML += '<p class="text-muted">No hay evaluaciones registradas.</p>';
+    const vacio = document.createElement('p');
+    vacio.className = 'text-muted';
+    vacio.textContent = 'No hay evaluaciones registradas.';
+    container.appendChild(vacio);
     return;
   }
   const list = document.createElement('div');
@@ -799,7 +802,10 @@ async function loadExamenes(id) {
 
   const examenes = await fetchJson(`${API_BASE}/api/clientes/${id}/examenes`);
   if (!Array.isArray(examenes) || examenes.length === 0) {
-    container.innerHTML += '<p class="text-muted">No hay exámenes registrados.</p>';
+    const vacio = document.createElement('p');
+    vacio.className = 'text-muted';
+    vacio.textContent = 'No hay exámenes registrados.';
+    container.appendChild(vacio);
     return;
   }
   const list = document.createElement('div');
@@ -943,7 +949,10 @@ async function loadCertificados(id) {
 
   const certificados = await fetchJson(`${API_BASE}/api/clientes/${id}/certificados`);
   if (!Array.isArray(certificados) || certificados.length === 0) {
-    container.innerHTML += '<p class="text-muted">No hay certificados registrados.</p>';
+    const vacio = document.createElement('p');
+    vacio.className = 'text-muted';
+    vacio.textContent = 'No hay certificados registrados.';
+    container.appendChild(vacio);
     return;
   }
   const list = document.createElement('div');
