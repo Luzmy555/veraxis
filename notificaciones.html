@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notificaciones | Montas Auto Academy</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body>
+<script>
+  if (!localStorage.getItem('sesionActiva')) {
+    window.location.href = 'login.html';
+  }
+</script>
+
+<nav class="navbar navbar-dark bg-dark px-4 py-3">
+  <div class="d-flex align-items-center">
+    <img data-branding="logo" src="assets/logo.png" alt="Logo Montas Auto Academy" width="50" class="me-2" />
+    <div class="text-white">
+      <h1 class="h5 mb-0">Notificaciones</h1>
+      <small>Recordatorios de clase y avisos de pago pendiente</small>
+    </div>
+  </div>
+  <div class="ms-auto">
+    <a href="panel.html" class="btn btn-outline-light btn-sm me-2">Inicio</a>
+    <button onclick="cerrarSesion()" class="btn btn-outline-danger btn-sm">Cerrar sesión</button>
+  </div>
+</nav>
+
+<main class="container my-5">
+  <div id="avisoDesactivado" class="alert alert-warning d-none" role="alert"></div>
+
+  <div class="card mb-4">
+    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-calendar-check me-2"></i>Clases de mañana</span>
+      <button class="btn btn-outline-light btn-sm" onclick="cargarPendientes()">Actualizar</button>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Estudiante</th>
+            <th>Teléfono</th>
+            <th>Hora</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tablaClases">
+          <tr><td colspan="4">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header bg-dark text-white">
+      <i class="bi bi-cash-coin me-2"></i>Pagos pendientes
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Estudiante</th>
+            <th>Teléfono</th>
+            <th>Saldo</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="tablaPagos">
+          <tr><td colspan="4">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script src="js/config.js"></script>
+<script src="js/authHelpers.js"></script>
+<script>aplicarBranding();</script>
+<script>
+  let NOMBRE_ACADEMIA = 'Montas Auto Academy';
+
+  async function cargarNombreAcademia() {
+    try {
+      const res = await fetch(API_BASE + '/api/configuracion/branding');
+      const data = await res.json();
+      if (data.nombre_sistema) NOMBRE_ACADEMIA = data.nombre_sistema;
+    } catch (error) { /* se queda el nombre por defecto */ }
+  }
+
+  // wa.me solo abre WhatsApp con el mensaje precargado — el clic en "Enviar" lo da el staff.
+  function linkWhatsapp(telefono, mensaje) {
+    let digitos = String(telefono || '').replace(/[^\d]/g, '');
+    if (digitos.length === 10) digitos = '1' + digitos; // asume código de país RD si falta
+    return `https://wa.me/${digitos}?text=${encodeURIComponent(mensaje)}`;
+  }
+
+  function botonWhatsapp(telefono, mensaje) {
+    if (!telefono) return '<span class="text-muted small">Sin teléfono</span>';
+    return `<a class="btn btn-sm btn-success" href="${linkWhatsapp(telefono, mensaje)}" target="_blank">
+      <i class="bi bi-whatsapp me-1"></i>Enviar
+    </a>`;
+  }
+
+  async function cargarPendientes() {
+    const tablaClases = document.getElementById('tablaClases');
+    const tablaPagos = document.getElementById('tablaPagos');
+    const aviso = document.getElementById('avisoDesactivado');
+    tablaClases.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
+    tablaPagos.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
+
+    try {
+      const res = await fetch(API_BASE + '/api/notificaciones/pendientes', { headers: getAuthHeaders() });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+
+      const avisos = [];
+      if (!data.flags.notif_recordatorio_clases) avisos.push('los recordatorios de clase');
+      if (!data.flags.notif_avisos_pagos) avisos.push('los avisos de pago pendiente');
+      if (avisos.length) {
+        aviso.textContent = `Nota: ${avisos.join(' y ')} está${avisos.length > 1 ? 'n' : ''} desactivado${avisos.length > 1 ? 's' : ''} en Configuración > Notificaciones. Actívalos para ver esa lista aquí.`;
+        aviso.classList.remove('d-none');
+      } else {
+        aviso.classList.add('d-none');
+      }
+
+      if (!data.clases.length) {
+        tablaClases.innerHTML = '<tr><td colspan="4">No hay clases programadas para mañana.</td></tr>';
+      } else {
+        tablaClases.innerHTML = '';
+        data.clases.forEach(c => {
+          const mensaje = `Hola ${c.nombre}, te recordamos tu clase de manejo mañana a las ${c.hora}. - ${NOMBRE_ACADEMIA}`;
+          tablaClases.innerHTML += `
+            <tr>
+              <td>${escapeHtml(c.nombre)}</td>
+              <td>${escapeHtml(c.telefono) || '-'}</td>
+              <td>${escapeHtml(c.hora)}</td>
+              <td>${botonWhatsapp(c.telefono, mensaje)}</td>
+            </tr>`;
+        });
+      }
+
+      if (!data.pagos.length) {
+        tablaPagos.innerHTML = '<tr><td colspan="4">No hay pagos pendientes.</td></tr>';
+      } else {
+        tablaPagos.innerHTML = '';
+        data.pagos.forEach(p => {
+          const saldo = parseFloat(p.saldo).toFixed(2);
+          const mensaje = `Hola ${p.nombre}, tienes un saldo pendiente de RD$${saldo} con nosotros. Cualquier duda, contáctanos. - ${NOMBRE_ACADEMIA}`;
+          tablaPagos.innerHTML += `
+            <tr>
+              <td>${escapeHtml(p.nombre)}</td>
+              <td>${escapeHtml(p.telefono) || '-'}</td>
+              <td>RD$ ${saldo}</td>
+              <td>${botonWhatsapp(p.telefono, mensaje)}</td>
+            </tr>`;
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      tablaClases.innerHTML = '<tr><td colspan="4">Error al cargar los pendientes.</td></tr>';
+      tablaPagos.innerHTML = '<tr><td colspan="4">Error al cargar los pendientes.</td></tr>';
+    }
+  }
+
+  function cerrarSesion() {
+    logout();
+  }
+
+  window.onload = async function () {
+    if (typeof requireStaffPage === 'function' && !requireStaffPage()) return;
+    await cargarNombreAcademia();
+    cargarPendientes();
+  };
+</script>
+</body>
+</html>

@@ -81,6 +81,7 @@ const auditoriaRoutes = require('./routes/auditoria');
 const reportesRoutes = require('./routes/reportes');
 const galeriaRoutes = require('./routes/galeria');
 const sucursalesRoutes = require('./routes/sucursales');
+const notificacionesRoutes = require('./routes/notificaciones');
 const { verifyToken } = require('./middlewares/authMiddleware');
 
 // /api/auth (login), /api/configuracion/branding (nombre/logo para login.html) y las
@@ -116,6 +117,7 @@ app.use('/api/auditoria', auditoriaRoutes);
 app.use('/api/reportes', reportesRoutes);
 app.use('/api/galeria', galeriaRoutes);
 app.use('/api/sucursales', sucursalesRoutes);
+app.use('/api/notificaciones', notificacionesRoutes);
 
 // Manejador de errores: convierte rechazos de multer (archivo inválido/muy grande) y
 // otros errores no controlados en JSON, en vez de la página HTML de error por defecto.

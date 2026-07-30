@@ -59,6 +59,15 @@ function requireAdminPage() {
   return true;
 }
 
+function requireStaffPage() {
+  if (!isAdmin() && !isInstructor()) {
+    alert('Acceso no autorizado.');
+    window.location.href = 'login.html';
+    return false;
+  }
+  return true;
+}
+
 // Aplica el nombre/logo configurados en Configuración > Información de la Academia
 // a cualquier página que marque sus elementos de header con data-branding="nombre"/"logo".
 async function aplicarBranding() {
