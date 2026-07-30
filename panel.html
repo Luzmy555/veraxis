@@ -397,6 +397,99 @@ body {
   z-index: 1000;
   border: 1px solid rgba(255,255,255,0.05);
 }
+
+/* --- RESPONSIVE: sidebar como panel deslizante en móvil/tablet --- */
+.mobile-topbar { display: none; }
+.sidebar-close-btn { display: none; }
+
+@media (max-width: 991.98px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 0 0 40px rgba(0,0,0,0.35);
+  }
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 84px 16px 32px 16px;
+  }
+
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    z-index: 90;
+    padding: 0 16px;
+  }
+  .mobile-topbar .sidebar-toggle-btn {
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-size: 22px;
+    line-height: 1;
+    padding: 4px;
+  }
+  .mobile-topbar .mobile-topbar-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+  }
+
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.5);
+    z-index: 99;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  .sidebar-backdrop.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .sidebar-close-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    font-size: 13px;
+  }
+  .sidebar-close-btn:hover {
+    background: rgba(255,255,255,0.18);
+  }
+
+  /* Tablas: fuente compacta y primera columna fija al deslizar horizontalmente */
+  .table-responsive { -webkit-overflow-scrolling: touch; }
+  .table { font-size: 12.5px; }
+  .table td, .table th { padding: 0.5rem 0.6rem; }
+  .table thead th:first-child,
+  .table tbody td:first-child {
+    position: sticky;
+    left: 0;
+    background: var(--card);
+    z-index: 1;
+  }
+
+  .row.g-4.mb-5 { margin-bottom: 1.5rem !important; }
+}
 </style>
  
 </head>
@@ -413,10 +506,13 @@ body {
   <div class="sidebar-header">
     <div class="logo-box">
       <img src="assets/logo.png" class="logo-img" id="sidebarLogoImg" data-branding="logo" style="filter: drop-shadow(0 0 6px rgba(255,255,255,0.6));">
-      <div>
+      <div class="flex-grow-1">
         <div class="logo-title" id="sidebarNombreAcademia" data-branding="nombre">Veraxis</div>
         <div class="logo-sub">Sistema de gestión para Autoescuelas</div>
       </div>
+      <button type="button" class="sidebar-close-btn" onclick="closeSidebar()" aria-label="Cerrar menú">
+        <i class="bi bi-x-lg"></i>
+      </button>
     </div>
 
     <div id="sidebarProfile" class="profile-card d-none">
@@ -481,8 +577,17 @@ body {
   </div>
 </div>
 
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
 <main class="main-content">
-  
+
+  <div class="mobile-topbar">
+    <button type="button" class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Abrir menú">
+      <i class="bi bi-list"></i>
+    </button>
+    <span class="mobile-topbar-title" data-branding="nombre">Veraxis</span>
+  </div>
+
   <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
     <h1 class="page-title mb-0">Sistema de Gestión</h1>
     <div id="wrapperSedePanel" class="d-flex align-items-center gap-2" style="display:none">
@@ -986,6 +1091,21 @@ body {
   };
 </script>
 <script>
+  // Sidebar deslizante en móvil/tablet (ver media query .sidebar.sidebar-open)
+  function toggleSidebar() {
+    document.querySelector('.sidebar').classList.toggle('sidebar-open');
+    document.getElementById('sidebarBackdrop').classList.toggle('show');
+  }
+  function closeSidebar() {
+    document.querySelector('.sidebar').classList.remove('sidebar-open');
+    document.getElementById('sidebarBackdrop').classList.remove('show');
+  }
+  window.toggleSidebar = toggleSidebar;
+  window.closeSidebar = closeSidebar;
+  document.querySelectorAll('.sidebar-nav .menu-item').forEach((link) => {
+    link.addEventListener('click', closeSidebar);
+  });
+
   // Recuerda qué grupos del menú lateral estaban abiertos/cerrados entre visitas.
   document.querySelectorAll('.sidebar-nav .collapse').forEach((panelEl) => {
     const guardado = localStorage.getItem('menuGrupo_' + panelEl.id);

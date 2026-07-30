@@ -59,6 +59,20 @@ app.use(express.json());
 const uploadsAccess = require('./middlewares/uploadsAccess');
 app.use('/uploads', uploadsAccess, express.static(path.join(__dirname, 'uploads')));
 
+// Sirve el frontend (HTML/CSS/JS sueltos en la raíz del repo) desde el mismo puerto
+// que la API, para poder exponer todo con un solo túnel de ngrok (un solo link).
+// dotfiles: 'ignore' (default de express.static) ya bloquea .env, .git, etc.; el
+// blocklist cubre lo que no empieza con punto pero tampoco debe quedar público.
+const frontendRoot = path.join(__dirname, '..');
+const frontendBlocklist = ['/montas-backend', '/node_modules'];
+app.use((req, res, next) => {
+  if (frontendBlocklist.some(p => req.path === p || req.path.startsWith(p + '/'))) {
+    return res.status(404).end();
+  }
+  next();
+});
+app.use(express.static(frontendRoot, { index: 'inicio.html' }));
+
 const clientesRoutes = require("./routes/clientes");
 const pagosRoutes = require("./routes/pagos");
 const asistenciasRoutes = require("./routes/asistencias");

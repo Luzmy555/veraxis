@@ -64,6 +64,48 @@
     .badge-estado-inactivo { background: var(--danger-light); color: var(--danger); }
 
     .form-switch .form-check-input { width: 2.4em; height: 1.3em; }
+
+    /* --- RESPONSIVE: menú de secciones y topbar en móvil/tablet --- */
+    @media (max-width: 767.98px) {
+      .topbar { padding: 12px 14px; flex-wrap: wrap; row-gap: 8px; }
+      .topbar img { width: 30px; margin-right: 8px; }
+      .topbar .flex-grow-1 { min-width: 0; }
+      .topbar h1 { font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .topbar small { display: block; font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+      .shell { flex-direction: column; padding: 18px 12px 40px 12px; gap: 14px; }
+
+      .config-menu {
+        width: 100%;
+        position: static;
+        top: auto;
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        gap: 6px;
+        padding: 8px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .config-menu-item {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        margin-bottom: 0;
+      }
+
+      .config-content { width: 100%; min-width: 0; }
+
+      /* Tablas: fuente compacta y primera columna fija para no perder el contexto al deslizar */
+      .table-responsive { -webkit-overflow-scrolling: touch; }
+      .table { font-size: 12.5px; }
+      .table td, .table th { padding: 0.5rem 0.6rem; }
+      .table thead th:first-child,
+      .table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: var(--card);
+        z-index: 1;
+      }
+    }
   </style>
 </head>
 <body>

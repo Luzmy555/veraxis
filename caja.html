@@ -192,6 +192,28 @@
       text-decoration: none; font-weight: 600; font-size: 13.5px;
     }
     .link-out:hover { background: var(--accent); color: #fff; }
+
+    /* --- RESPONSIVE: topbar y tablas en móvil/tablet --- */
+    @media (max-width: 767.98px) {
+      .topbar { padding: 12px 14px; flex-wrap: wrap; row-gap: 8px; }
+      .topbar img { width: 30px; margin-right: 8px; }
+      .topbar .flex-grow-1 { min-width: 0; }
+      .topbar h1 { font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .topbar small { display: block; font-size: 10.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+      .wrap { padding: 18px 12px 40px 12px; }
+
+      .table-responsive { -webkit-overflow-scrolling: touch; }
+      .table { font-size: 12.5px; }
+      .table td, .table th { padding: 0.5rem 0.6rem; }
+      .table thead th:first-child,
+      .table tbody td:first-child {
+        position: sticky;
+        left: 0;
+        background: var(--card);
+        z-index: 1;
+      }
+    }
   </style>
 </head>
 <body>
