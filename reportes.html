@@ -98,7 +98,7 @@
       <input type="date" id="rangoHasta" class="form-control" />
     </div>
     <div class="col-md-3" id="wrapperSedeReportes" style="display:none">
-      <label class="form-label">Sede (Flujo de Caja)</label>
+      <label class="form-label">Sede (Flujo de Caja / Instructores / Exámenes / Cursos)</label>
       <select id="filtroSedeReportes" class="form-select">
         <option value="">Todas las sedes</option>
       </select>
@@ -476,7 +476,9 @@
 
   async function cargarReporteEjecutivo(desde, hasta) {
     try {
-      const res = await fetch(`${API_BASE}/api/reportes/ejecutivo?desde=${desde}&hasta=${hasta}`);
+      const sede = document.getElementById('filtroSedeReportes').value;
+      const sufijoSede = sede ? `&sucursal_id=${sede}` : '';
+      const res = await fetch(`${API_BASE}/api/reportes/ejecutivo?desde=${desde}&hasta=${hasta}${sufijoSede}`);
       const data = await res.json();
 
       const tbodyInstructores = document.getElementById('tablaInstructores');

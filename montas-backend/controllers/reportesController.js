@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { resolverFiltroSucursal } = require('../utils/sucursal');
 
 // Reportes ejecutivos: métricas que hoy no expone ningún endpoint (rendimiento por
 // instructor, aprobación de exámenes, ingresos por curso). El flujo de caja ya lo
@@ -8,6 +9,10 @@ exports.getEjecutivo = async (req, res) => {
     const hoy = new Date().toISOString().slice(0, 10);
     const desde = req.query.desde || hoy.slice(0, 8) + '01';
     const hasta = req.query.hasta || hoy;
+    // Sede: NULL = admin global (ve todo, o filtra con ?sucursal_id= si lo manda).
+    // `cursos` no tiene sucursal_id propio (currículo compartido entre sedes), por
+    // eso "porCurso" filtra por la sede del cliente inscrito, no del curso en sí.
+    const sucursalId = resolverFiltroSucursal(req);
 
     // Subqueries correlacionadas por cliente (evita el "fan-out" de juntar
     // evaluaciones + exámenes + pagos directamente, que multiplicaría las sumas).
@@ -19,6 +24,7 @@ exports.getEjecutivo = async (req, res) => {
                 (SELECT COUNT(*) FROM cliente_examenes WHERE cliente_id = c.id AND tipo = 'Práctico' AND resultado = 'Aprobado' AND fecha BETWEEN $1 AND $2) AS practicos_aprobados,
                 (SELECT COALESCE(SUM(monto), 0) FROM pagos WHERE cliente_id = c.id AND fecha BETWEEN $1 AND $2) AS ingresos
          FROM clientes c
+         WHERE $3::int IS NULL OR c.sucursal_id = $3
        )
        SELECT i.id, i.nombre,
               COUNT(cm.id) FILTER (WHERE cm.estado_cliente = 'Activo') AS estudiantes_activos,
@@ -30,18 +36,21 @@ exports.getEjecutivo = async (req, res) => {
               COALESCE(SUM(cm.ingresos), 0) AS ingresos_generados
        FROM instructores i
        LEFT JOIN clientes_metricas cm ON cm.instructor_id = i.id
+       WHERE $3::int IS NULL OR i.sucursal_id = $3
        GROUP BY i.id, i.nombre
        ORDER BY i.nombre`,
-      [desde, hasta]
+      [desde, hasta, sucursalId]
     );
 
     const examenesPorTipo = await pool.query(
-      `SELECT tipo, resultado, COUNT(*) AS cantidad
-       FROM cliente_examenes
-       WHERE fecha BETWEEN $1 AND $2
-       GROUP BY tipo, resultado
-       ORDER BY tipo, resultado`,
-      [desde, hasta]
+      `SELECT ce.tipo, ce.resultado, COUNT(*) AS cantidad
+       FROM cliente_examenes ce
+       JOIN clientes c ON c.id = ce.cliente_id
+       WHERE ce.fecha BETWEEN $1 AND $2
+         AND ($3::int IS NULL OR c.sucursal_id = $3)
+       GROUP BY ce.tipo, ce.resultado
+       ORDER BY ce.tipo, ce.resultado`,
+      [desde, hasta, sucursalId]
     );
 
     const porCurso = await pool.query(
@@ -49,11 +58,11 @@ exports.getEjecutivo = async (req, res) => {
               COUNT(DISTINCT c.id) AS estudiantes,
               COALESCE(SUM(p.monto) FILTER (WHERE p.fecha BETWEEN $1 AND $2), 0) AS ingresos
        FROM cursos cu
-       LEFT JOIN clientes c ON c.curso_id = cu.id
+       LEFT JOIN clientes c ON c.curso_id = cu.id AND ($3::int IS NULL OR c.sucursal_id = $3)
        LEFT JOIN pagos p ON p.cliente_id = c.id
        GROUP BY cu.id, cu.nombre
        ORDER BY cu.nombre`,
-      [desde, hasta]
+      [desde, hasta, sucursalId]
     );
 
     // Arma el resumen de exámenes por tipo con conteos y tasa de aprobación

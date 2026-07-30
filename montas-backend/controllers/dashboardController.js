@@ -1,4 +1,5 @@
 const pool = require('../db');
+const { resolverFiltroSucursal } = require('../utils/sucursal');
 
 exports.getResumen = async (req, res) => {
   const userRole = req.user.rol;
@@ -29,14 +30,16 @@ exports.getResumen = async (req, res) => {
     return res.json(result.rows[0]);
   }
 
+  // Sede: NULL = admin global (ve todo, o filtra con ?sucursal_id= si lo manda); un valor = atado a esa sede.
+  const sucursalId = resolverFiltroSucursal(req);
   const result = await pool.query(`
     SELECT
-      (SELECT COUNT(*) FROM clientes) AS total_clientes,
-      (SELECT COUNT(*) FROM pagos) AS total_pagos,
-      (SELECT COUNT(*) FROM asistencias) AS total_asistencias,
-      (SELECT COUNT(*) FROM cursos) AS total_cursos,
-      (SELECT COUNT(*) FROM instructores) AS total_instructores,
-      COALESCE((SELECT SUM(monto) FROM pagos), 0) AS ingresos_totales
-  `);
+      (SELECT COUNT(*) FROM clientes c WHERE $1::int IS NULL OR c.sucursal_id = $1) AS total_clientes,
+      (SELECT COUNT(*) FROM pagos p JOIN clientes c ON c.id = p.cliente_id WHERE $1::int IS NULL OR c.sucursal_id = $1) AS total_pagos,
+      (SELECT COUNT(*) FROM asistencias a JOIN clientes c ON c.id = a.cliente_id WHERE $1::int IS NULL OR c.sucursal_id = $1) AS total_asistencias,
+      (SELECT COUNT(DISTINCT curso_id) FROM clientes c WHERE curso_id IS NOT NULL AND ($1::int IS NULL OR c.sucursal_id = $1)) AS total_cursos,
+      (SELECT COUNT(*) FROM instructores i WHERE $1::int IS NULL OR i.sucursal_id = $1) AS total_instructores,
+      COALESCE((SELECT SUM(p.monto) FROM pagos p JOIN clientes c ON c.id = p.cliente_id WHERE $1::int IS NULL OR c.sucursal_id = $1), 0) AS ingresos_totales
+  `, [sucursalId]);
   res.json(result.rows[0]);
 };

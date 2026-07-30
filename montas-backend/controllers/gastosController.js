@@ -93,6 +93,11 @@ exports.crearGasto = async (req, res) => {
     const comprobanteOriginalName = req.file ? req.file.originalname : null;
     const comprobanteMime = req.file ? req.file.mimetype : null;
 
+    // Un admin atado a una sede siempre registra en la suya (resolverFiltroSucursal ya
+    // la fuerza); solo un admin global puede elegir manualmente una sede distinta.
+    const esGlobal = !req.user.sucursal_id;
+    const sucursalGasto = (esGlobal && sucursal_id) ? sucursal_id : resolverFiltroSucursal(req) || null;
+
     const result = await pool.query(
       `INSERT INTO gastos
         (fecha, categoria, descripcion, monto, itbis, proveedor, rnc_proveedor, ncf, metodo_pago, comprobante, comprobante_original_name, comprobante_mime, registrado_por, registrado_por_nombre, sucursal_id)
@@ -102,7 +107,7 @@ exports.crearGasto = async (req, res) => {
         proveedor || null, rnc_proveedor || null, ncf || null, metodo_pago || 'Efectivo',
         comprobante, comprobanteOriginalName, comprobanteMime,
         registradoPor, registradoPorNombre,
-        sucursal_id || resolverFiltroSucursal(req) || null
+        sucursalGasto
       ]
     );
     res.status(201).json(result.rows[0]);
@@ -118,16 +123,21 @@ exports.actualizarGasto = async (req, res) => {
     const errorValidacion = await validarGasto(req.body);
     if (errorValidacion) return res.status(400).json({ error: errorValidacion });
 
-    const { fecha, categoria, descripcion, monto, itbis, proveedor, rnc_proveedor, ncf, metodo_pago } = req.body;
+    const { fecha, categoria, descripcion, monto, itbis, proveedor, rnc_proveedor, ncf, metodo_pago, sucursal_id } = req.body;
+    // Solo un admin global puede reasignar la sede de un gasto ya creado; uno atado a
+    // una sede no manda este campo (el select va oculto para él en el formulario).
+    const esGlobal = !req.user.sucursal_id;
+    const sucursalId = esGlobal && sucursal_id ? sucursal_id : null;
     const result = await pool.query(
       `UPDATE gastos SET
          fecha = $1, categoria = $2, descripcion = $3, monto = $4, itbis = $5,
-         proveedor = $6, rnc_proveedor = $7, ncf = $8, metodo_pago = $9
-       WHERE id = $10 RETURNING *`,
+         proveedor = $6, rnc_proveedor = $7, ncf = $8, metodo_pago = $9,
+         sucursal_id = COALESCE($10, sucursal_id)
+       WHERE id = $11 RETURNING *`,
       [
         fecha, categoria, descripcion || null, parseFloat(monto), parseFloat(itbis) || 0,
         proveedor || null, rnc_proveedor || null, ncf || null, metodo_pago || 'Efectivo',
-        id
+        sucursalId, id
       ]
     );
     if (result.rowCount === 0) return res.status(404).json({ error: 'Gasto no encontrado' });

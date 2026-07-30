@@ -483,8 +483,15 @@ body {
 
 <main class="main-content">
   
-  <div class="page-header">
-    <h1 class="page-title">Sistema de Gestión</h1>
+  <div class="page-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <h1 class="page-title mb-0">Sistema de Gestión</h1>
+    <div id="wrapperSedePanel" class="d-flex align-items-center gap-2" style="display:none">
+      <label class="form-label small text-muted mb-0">Sede</label>
+      <select id="filtroSedePanel" class="form-select form-select-sm" style="width:auto">
+        <option value="">Todas las sedes</option>
+      </select>
+    </div>
+    <span id="sedeFijaLabelPanel" class="badge bg-secondary" style="display:none;"></span>
   </div>
 
   <div class="row g-4 mb-5">
@@ -875,8 +882,15 @@ body {
     cargarPanelInstructor();
   }
 
+    await initSelectorSedePanel();
+    cargarResumenDashboard();
+  }
+
+  async function cargarResumenDashboard() {
     try {
-      const res = await fetch(API_BASE + '/api/dashboard', { headers: getAuthHeaders() });
+      const sede = document.getElementById('filtroSedePanel').value;
+      const sufijoSede = sede ? `?sucursal_id=${sede}` : '';
+      const res = await fetch(`${API_BASE}/api/dashboard${sufijoSede}`, { headers: getAuthHeaders() });
       const data = await res.json();
       document.getElementById('panelIngresos').textContent = `RD$ ${parseFloat(data.ingresos_totales || 0).toFixed(2)}`;
       document.getElementById('panelClientes').textContent = data.total_clientes || 0;
@@ -884,6 +898,35 @@ body {
       document.getElementById('panelInstructores').textContent = data.total_instructores || 0;
     } catch (error) {
       console.error('Error cargando estadísticas:', error);
+    }
+  }
+
+  async function initSelectorSedePanel() {
+    if (!esUsuarioGlobal()) {
+      try {
+        const res = await fetch(`${API_BASE}/api/sucursales`, { headers: getAuthHeaders() });
+        const sedes = await res.json();
+        const mia = sedes.find(s => String(s.id) === String(getSucursalId()));
+        const label = document.getElementById('sedeFijaLabelPanel');
+        label.textContent = mia ? mia.nombre : 'Mi sede';
+        label.style.display = '';
+      } catch (e) { /* se queda sin nombre visible */ }
+      return;
+    }
+    document.getElementById('wrapperSedePanel').style.display = '';
+    try {
+      const res = await fetch(`${API_BASE}/api/sucursales`, { headers: getAuthHeaders() });
+      const sedes = await res.json();
+      const select = document.getElementById('filtroSedePanel');
+      sedes.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s.id;
+        option.textContent = s.nombre;
+        select.appendChild(option);
+      });
+      select.addEventListener('change', cargarResumenDashboard);
+    } catch (error) {
+      console.error('Error cargando sucursales:', error);
     }
   }
 

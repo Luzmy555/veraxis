@@ -125,6 +125,10 @@
               <option value="Cheque">Cheque</option>
             </select>
           </div>
+          <div class="col-md-4" id="wrapperGastoSede" style="display:none">
+            <label class="form-label">Sede</label>
+            <select id="gastoSede" class="form-select"></select>
+          </div>
           <div class="col-12">
             <label class="form-label">Descripción</label>
             <input id="gastoDescripcion" class="form-control" />
@@ -285,6 +289,25 @@
     modalGasto.show();
   }
 
+  async function initSelectorSedeModalGasto() {
+    if (!esUsuarioGlobal()) return;
+    document.getElementById('wrapperGastoSede').style.display = '';
+    try {
+      const res = await fetch(`${API_BASE}/api/sucursales`, { headers: getAuthHeaders() });
+      const sedes = await res.json();
+      const select = document.getElementById('gastoSede');
+      select.innerHTML = '<option value="">Sin asignar</option>';
+      sedes.forEach(s => {
+        const option = document.createElement('option');
+        option.value = s.id;
+        option.textContent = s.nombre;
+        select.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error cargando sucursales para el formulario de gasto:', error);
+    }
+  }
+
   async function editarGasto(id) {
     try {
       const g = gastosCache.find(x => x.id === id);
@@ -302,6 +325,7 @@
       document.getElementById('gastoMonto').value = g.monto;
       document.getElementById('gastoItbis').value = g.itbis || 0;
       document.getElementById('gastoItbisAuto').checked = false;
+      if (esUsuarioGlobal()) document.getElementById('gastoSede').value = g.sucursal_id || '';
       modalGasto.show();
     } catch (error) {
       showToast('No se pudo cargar el gasto para editar.', 'danger');
@@ -320,6 +344,10 @@
     fd.append('ncf', document.getElementById('gastoNcf').value.trim());
     fd.append('monto', document.getElementById('gastoMonto').value);
     fd.append('itbis', document.getElementById('gastoItbis').value || 0);
+    if (esUsuarioGlobal()) {
+      const sede = document.getElementById('gastoSede').value;
+      if (sede) fd.append('sucursal_id', sede);
+    }
     const archivo = document.getElementById('gastoComprobante').files[0];
     if (archivo) fd.append('comprobante', archivo);
 
@@ -422,6 +450,7 @@
   window.onload = async function () {
     if (typeof requireAdminPage === 'function' && !requireAdminPage()) return;
     await initSelectorSedeGastos();
+    await initSelectorSedeModalGasto();
     cargarCategorias();
     cargarGastos();
   };
