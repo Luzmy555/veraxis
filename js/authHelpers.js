@@ -80,7 +80,11 @@ async function aplicarBranding() {
       document.querySelectorAll('[data-branding="nombre"]').forEach((el) => {
         el.textContent = config.nombre_sistema;
       });
-      document.title = document.title.replace('Montas Auto Academy', config.nombre_sistema);
+      // Reemplaza lo que haya después del último "| " en el título (en vez de un nombre
+      // fijo) para que un futuro cambio de marca no dependa de editar este archivo también.
+      document.title = document.title.includes(' | ')
+        ? document.title.replace(/\|\s*[^|]+$/, `| ${config.nombre_sistema}`)
+        : config.nombre_sistema;
     }
     if (config.logo_url) {
       document.querySelectorAll('[data-branding="logo"]').forEach((el) => {

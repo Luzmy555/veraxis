@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project overview
 
-Montas Auto Academy — a driving school management system. It has two parts in one repo:
+Veraxis (repo/codebase still named "Montas" internally; the product's display name — shown in the UI, configurable via Configuración → Información de la Academia — was renamed to Veraxis) — a driving school management system. It has two parts in one repo:
 
 - **Frontend**: plain multi-page HTML/CSS/vanilla JS at the repo root (no build step, no framework, no bundler). Bootstrap 5 and Bootstrap Icons are pulled from CDN in each HTML file. Pages are opened directly / served via a static file server (VS Code Live Server, configured in `settings.json` on port 5501).
 - **Backend**: `montas-backend/` — a Node/Express REST API backed by PostgreSQL (`pg`), using the MVC-ish pattern `routes/` → `controllers/` → `db.js` (a single shared `Pool`).

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Iniciar Sesión | Montas Auto Academy</title>
+  <title>Iniciar Sesión | Veraxis</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="css/styles.css" />
   <script src="js/config.js"></script>
@@ -35,42 +35,79 @@
 <body>
 
   <div class="login-box">
-    <img src="assets/logo.png" alt="Montas Auto Academy" data-branding="logo" />
-    <h2 class="h5 mb-3" data-branding="nombre">Montas Auto Academy</h2>
+    <img src="assets/logo.png" alt="Veraxis" data-branding="logo" />
+    <h2 class="h5 mb-3" data-branding="nombre">Veraxis</h2>
     <p class="text-muted mb-4">Solo personal autorizado</p>
+
+    <div id="loginError" class="alert alert-danger text-start py-2 d-none" role="alert"></div>
 
     <form id="formLogin">
       <div class="mb-3 text-start">
         <label for="usuario" class="form-label">Usuario</label>
-        <input type="text" class="form-control" id="usuario" required />
+        <input type="text" class="form-control" id="usuario" required autofocus />
       </div>
       <div class="mb-3 text-start">
         <label for="clave" class="form-label">Contraseña</label>
         <input type="password" class="form-control" id="clave" required />
       </div>
-      <button type="submit" class="btn btn-primary w-100">Entrar</button>
+      <button type="submit" class="btn btn-primary w-100" id="btnEntrar">Entrar</button>
     </form>
+
+    <p class="mt-3 mb-0">
+      <a href="#" id="linkOlvideClave" class="small text-decoration-none">¿Olvidaste tu contraseña?</a>
+    </p>
+    <div id="ayudaClave" class="alert alert-info text-start py-2 mt-2 d-none" role="alert">
+      Para recuperar tu acceso, contacta a un administrador de la academia — puede reiniciar tu contraseña desde <strong>Configuración → Usuarios</strong>.
+    </div>
   </div>
 
   <script src="js/authHelpers.js"></script>
   <script>aplicarBranding();</script>
   <script>
+    const HINTS_POR_ERROR = {
+      "Usuario no existe": "Revisa que escribiste bien tu usuario — no lleva espacios ni acentos.",
+      "Clave incorrecta": "La contraseña no coincide. Recuerda que distingue mayúsculas de minúsculas.",
+      "Tu cuenta está desactivada. Contacta a un administrador.": "Un administrador puede reactivarte desde Configuración → Usuarios."
+    };
+
+    function mostrarErrorLogin(mensaje) {
+      const caja = document.getElementById("loginError");
+      const hint = HINTS_POR_ERROR[mensaje];
+      caja.innerHTML = `<div>${escapeHtml(mensaje || "No se pudo iniciar sesión.")}</div>${hint ? `<div class="small mt-1 mb-0">${escapeHtml(hint)}</div>` : ""}`;
+      caja.classList.remove("d-none");
+    }
+
+    document.getElementById("linkOlvideClave").addEventListener("click", function (e) {
+      e.preventDefault();
+      document.getElementById("ayudaClave").classList.remove("d-none");
+    });
+
     document.getElementById("formLogin").addEventListener("submit", async function (e) {
       e.preventDefault();
-  
-      const usuario = document.getElementById("usuario").value;
+
+      document.getElementById("loginError").classList.add("d-none");
+      const usuario = document.getElementById("usuario").value.trim();
       const clave = document.getElementById("clave").value;
-  
+      const btn = document.getElementById("btnEntrar");
+
+      if (!usuario || !clave) {
+        mostrarErrorLogin("Completa usuario y contraseña.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Entrando...";
+
       try {
-        const res = await fetch(API_BASE + "/api/auth/login", 
+        const res = await fetch(API_BASE + "/api/auth/login",
  {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ usuario, clave })
         });
-  
+
         const result = await res.json();
-  
+
         if (res.ok) {
           localStorage.setItem("sesionActiva", "true");
           localStorage.setItem("userRole", (result.rol || "usuario").toString().toLowerCase());
@@ -81,15 +118,19 @@
           const rol = (result.rol || "").toString().toLowerCase();
           window.location.href = rol === "estudiante" ? "portal-estudiante.html" : "panel.html";
         } else {
-          alert(result.error);
+          mostrarErrorLogin(result.error);
+          btn.disabled = false;
+          btn.textContent = "Entrar";
         }
       } catch (error) {
         console.error("Error en conexión:", error);
-        alert("Error en la conexión con el servidor");
+        mostrarErrorLogin("No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.");
+        btn.disabled = false;
+        btn.textContent = "Entrar";
       }
     });
   </script>
-  
+
 
 </body>
 </html>

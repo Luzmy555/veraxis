@@ -114,12 +114,24 @@ exports.crearAccesoPortal = async (req, res) => {
     const claveTemporal = crypto.randomBytes(6).toString('base64url');
     const hash = await bcrypt.hash(claveTemporal, 10);
 
-    const nuevoUsuario = await pool.query(
-      `INSERT INTO usuarios (usuario, clave, rol, nombre_completo, estado)
-       VALUES ($1, $2, 'estudiante', $3, 'Activo') RETURNING id`,
-      [usuario, hash, cliente.rows[0].nombre]
-    );
-    await pool.query('UPDATE clientes SET usuario_id = $1 WHERE id = $2', [nuevoUsuario.rows[0].id, id]);
+    // Transacción: si el UPDATE fallara después del INSERT, quedaría un usuario válido
+    // pero sin vincular a ningún cliente (huérfano) — con esto, o pasan ambas o ninguna.
+    const db = await pool.connect();
+    try {
+      await db.query('BEGIN');
+      const nuevoUsuario = await db.query(
+        `INSERT INTO usuarios (usuario, clave, rol, nombre_completo, estado)
+         VALUES ($1, $2, 'estudiante', $3, 'Activo') RETURNING id`,
+        [usuario, hash, cliente.rows[0].nombre]
+      );
+      await db.query('UPDATE clientes SET usuario_id = $1 WHERE id = $2', [nuevoUsuario.rows[0].id, id]);
+      await db.query('COMMIT');
+    } catch (txError) {
+      await db.query('ROLLBACK');
+      throw txError;
+    } finally {
+      db.release();
+    }
 
     await registrarAuditoria(req, 'Dio acceso al portal del estudiante', `${cliente.rows[0].nombre} (usuario: ${usuario})`);
     res.status(201).json({ yaExistia: false, usuario, clave_temporal: claveTemporal });
@@ -412,7 +424,13 @@ exports.subirFotoCliente = async (req, res) => {
 
 exports.eliminarCliente = async (req, res) => {
   const { id } = req.params;
-  const actual = await pool.query('SELECT nombre FROM clientes WHERE id = $1', [id]);
+  const actual = await pool.query('SELECT nombre, usuario_id FROM clientes WHERE id = $1', [id]);
+  // Si el cliente tenía acceso al portal, se desactiva esa cuenta antes de borrarlo — de lo
+  // contrario queda una credencial válida (usuario/clave que sí autentican) sin ningún
+  // expediente detrás, y el "estudiante" ve un portal vacío sin entender por qué.
+  if (actual.rows[0]?.usuario_id) {
+    await pool.query("UPDATE usuarios SET estado = 'Inactivo' WHERE id = $1", [actual.rows[0].usuario_id]);
+  }
   await pool.query('DELETE FROM clientes WHERE id = $1', [id]);
   if (actual.rowCount > 0) {
     await registrarAuditoria(req, 'Eliminó cliente', actual.rows[0].nombre);
