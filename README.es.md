@@ -1,23 +1,52 @@
-# Veraxis
+<div align="center">
 
-**Sistema de gestión para autoescuelas** — estudiantes, cursos, instructores, horarios, pagos, caja, gastos, flota, multi-sucursal y reportes ejecutivos, todo en un solo lugar.
+# 🚗 Veraxis
 
-> 🇬🇧 Reading in English? See [README.md](README.md).
+### Sistema de gestión full-stack para autoescuelas
 
----
+Estudiantes, cursos, instructores, horarios, pagos, caja, gastos, flota, multi-sucursal y reportes ejecutivos — todo en un solo lugar.
 
-## Capturas de pantalla
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express_5-000000?style=for-the-badge&logo=express&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![Bootstrap](https://img.shields.io/badge/Bootstrap_5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT_Auth-black?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
 
-> Coloca tus capturas (PNG/JPG) en `docs/screenshots/` con los nombres de archivo de abajo — las imágenes se mostrarán automáticamente aquí y en el README en inglés.
+**[🇬🇧 English](README.md)** · **[🇪🇸 Español](README.es.md)**
 
-| | |
-|---|---|
-| **Panel principal** <br> `docs/screenshots/dashboard.png` | **Expediente del estudiante** <br> `docs/screenshots/expediente.png` |
-| **Pagos y facturación** <br> `docs/screenshots/pagos.png` | **Caja** <br> `docs/screenshots/caja.png` |
-| **Reportes ejecutivos** <br> `docs/screenshots/reportes.png` | **Página de inicio pública** <br> `docs/screenshots/inicio.png` |
-| **Configuración** <br> `docs/screenshots/configuracion.png` | **Portal del estudiante** <br> `docs/screenshots/portal-estudiante.png` |
+</div>
 
-![Panel principal](docs/screenshots/dashboard.png)
+<br>
+
+<p align="center">
+  <img src="docs/screenshots/caja.png" alt="Veraxis — módulo de caja" width="850">
+</p>
+
+## Tabla de contenidos
+
+- [Demo](#-demo)
+- [Descripción](#descripción)
+- [Funcionalidades principales](#funcionalidades-principales)
+- [Capturas de pantalla](#capturas-de-pantalla)
+- [Tecnologías utilizadas](#tecnologías-utilizadas)
+- [Arquitectura](#arquitectura)
+- [Puesta en marcha](#puesta-en-marcha)
+- [Licencia](#licencia)
+
+## 🎬 Demo
+
+**Página de inicio pública**
+
+![Demo de la página de inicio](docs/screenshots/inicio.gif)
+
+**Panel de administración**
+
+![Demo del panel de administración](docs/screenshots/dashboard.gif)
+
+**Portal del estudiante**
+
+![Demo del portal del estudiante](docs/screenshots/portal-estudiante.gif)
 
 ## Descripción
 
@@ -25,20 +54,38 @@ Veraxis es un sistema web full-stack para llevar la operación diaria de una aut
 
 ## Funcionalidades principales
 
-- **Expediente del estudiante** — datos personales, de contacto, contacto de emergencia, académicos y financieros; foto, documentos, observaciones, evaluaciones de progreso, intentos de examen y certificados emitidos, todo en un solo perfil.
-- **Cursos, instructores y horarios** — catálogo de cursos con precios, asignación de instructores y programación de clases.
-- **Pagos y facturación** — pagos parciales, múltiples métodos de pago, facturas/recibos imprimibles numerados automáticamente.
-- **Control de asistencias** por estudiante/clase.
-- **Caja** — apertura y cierre diario con arqueo, movimientos de ingresos/gastos unificados, categorías configurables.
-- **Gastos operativos** — con campos fiscales para República Dominicana (RNC / NCF / ITBIS).
-- **Gestión de flota** — vehículos e historial de mantenimientos.
-- **Reportes ejecutivos** — ingresos, inscripciones e indicadores operativos.
-- **Multi-sucursal** — caja y datos independientes por sede física.
-- **Portal del estudiante** — el estudiante inicia sesión y ve su propio progreso, pagos y horario.
-- **Página de inicio pública** — hero, sobre nosotros, galería y redes sociales, totalmente editable desde Configuración sin tocar código.
-- **Notificaciones por WhatsApp** — recordatorios de clases y pagos con un botón `wa.me` de un toque.
-- **Acceso por roles** (`admin`, `instructor`, `estudiante`) aplicado tanto en la interfaz como en la API.
-- **Bitácora de auditoría** de las acciones clave del sistema.
+| | |
+|---|---|
+| 🎓 **Expediente del estudiante** | Datos personales, de contacto, contacto de emergencia, académicos y financieros; foto, documentos, observaciones, evaluaciones de progreso, intentos de examen y certificados emitidos — todo en un solo perfil. |
+| 📚 **Cursos, instructores y horarios** | Catálogo de cursos con precios, asignación de instructores y programación de clases. |
+| 💳 **Pagos y facturación** | Pagos parciales, múltiples métodos de pago, facturas/recibos imprimibles numerados automáticamente. |
+| ✅ **Control de asistencias** | Por estudiante y por clase. |
+| 💰 **Caja** | Apertura y cierre diario con arqueo, movimientos de ingresos/gastos unificados, categorías configurables. |
+| 🧾 **Gastos operativos** | Campos fiscales para República Dominicana (RNC / NCF / ITBIS). |
+| 🚐 **Gestión de flota** | Vehículos e historial de mantenimientos. |
+| 📊 **Reportes ejecutivos** | Ingresos, inscripciones e indicadores operativos. |
+| 🏢 **Multi-sucursal** | Caja y datos independientes por sede física. |
+| 👩‍🎓 **Portal del estudiante** | El estudiante inicia sesión y ve su propio progreso, pagos y horario. |
+| 🌐 **Página de inicio pública** | Hero, sobre nosotros, galería y redes sociales, editable desde Configuración sin tocar código. |
+| 📱 **Notificaciones por WhatsApp** | Recordatorios de clases y pagos con un botón `wa.me` de un toque. |
+| 🔐 **Acceso por roles** | `admin`, `instructor`, `estudiante` — aplicado en la interfaz y en la API. |
+| 🕵️ **Bitácora de auditoría** | Registra las acciones clave del sistema. |
+
+## Capturas de pantalla
+
+<table>
+  <tr>
+    <td align="center" width="50%"><img src="docs/screenshots/login.png" alt="Login"><br><sub><b>Inicio de sesión</b></sub></td>
+    <td align="center" width="50%"><img src="docs/screenshots/caja.png" alt="Caja"><br><sub><b>Caja</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/vehiculos.png" alt="Flota"><br><sub><b>Gestión de flota</b></sub></td>
+    <td align="center"><img src="docs/screenshots/configuracion.png" alt="Configuración"><br><sub><b>Configuración</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2"><img src="docs/screenshots/notificaciones.png" alt="Notificaciones por WhatsApp"><br><sub><b>Notificaciones por WhatsApp</b></sub></td>
+  </tr>
+</table>
 
 ## Tecnologías utilizadas
 
@@ -106,3 +153,11 @@ npm test
 ## Licencia
 
 Propietario — todos los derechos reservados. Consulta [LICENSE](LICENSE). Queda prohibido revender, redistribuir o reutilizar este código (total o parcialmente) sin permiso explícito y por escrito del autor.
+
+<div align="center">
+
+<br>
+
+Hecho por [Luzmy555](https://github.com/Luzmy555)
+
+</div>

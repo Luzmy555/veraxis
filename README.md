@@ -1,23 +1,52 @@
-# Veraxis
+<div align="center">
 
-**Management system for driving schools** — students, courses, instructors, schedules, payments, cash register, expenses, fleet, multi-branch support, and an executive reporting dashboard, all in one place.
+# 🚗 Veraxis
 
-> 🇪🇸 ¿Buscas la versión en español? Lee [README.es.md](README.es.md).
+### Full-stack management system for driving schools
 
----
+Students, courses, instructors, schedules, payments, cash register, expenses, fleet, multi-branch support, and an executive reporting dashboard — all in one place.
 
-## Screenshots
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express_5-000000?style=for-the-badge&logo=express&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+![Bootstrap](https://img.shields.io/badge/Bootstrap_5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT_Auth-black?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
 
-> Drop your PNG/JPG screenshots into `docs/screenshots/` using the file names below — the images will then render automatically here and in the Spanish README.
+**[🇬🇧 English](README.md)** · **[🇪🇸 Español](README.es.md)**
 
-| | |
-|---|---|
-| **Dashboard** <br> `docs/screenshots/dashboard.png` | **Student record (expediente)** <br> `docs/screenshots/expediente.png` |
-| **Payments & invoicing** <br> `docs/screenshots/pagos.png` | **Cash register (caja)** <br> `docs/screenshots/caja.png` |
-| **Executive reports** <br> `docs/screenshots/reportes.png` | **Public landing page** <br> `docs/screenshots/inicio.png` |
-| **Settings** <br> `docs/screenshots/configuracion.png` | **Student portal** <br> `docs/screenshots/portal-estudiante.png` |
+</div>
 
-![Dashboard](docs/screenshots/dashboard.png)
+<br>
+
+<p align="center">
+  <img src="docs/screenshots/caja.png" alt="Veraxis — cash register module" width="850">
+</p>
+
+## Table of Contents
+
+- [Demo](#-demo)
+- [About](#about)
+- [Key Features](#key-features)
+- [Screenshots](#screenshots)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Getting Started](#getting-started)
+- [License](#license)
+
+## 🎬 Demo
+
+**Public landing page**
+
+![Public landing page demo](docs/screenshots/inicio.gif)
+
+**Admin dashboard**
+
+![Admin dashboard demo](docs/screenshots/dashboard.gif)
+
+**Student portal**
+
+![Student portal demo](docs/screenshots/portal-estudiante.gif)
 
 ## About
 
@@ -25,20 +54,38 @@ Veraxis is a full-stack web system built to run the day-to-day operations of a d
 
 ## Key Features
 
-- **Student records ("expediente")** — personal, contact, emergency-contact, academic and financial data; photo, documents, observations, progress evaluations, exam attempts and issued certificates, all in one profile.
-- **Courses, instructors & schedules** — course catalog with pricing, instructor assignment, and class scheduling.
-- **Payments & invoicing** — partial payments, multiple payment methods, auto-numbered printable invoices/receipts.
-- **Attendance tracking** per student/class.
-- **Cash register (Caja)** — daily opening/closing with cash reconciliation, unified income/expense movements, configurable categories.
-- **Operating expenses** — with fiscal fields for the Dominican Republic (RNC / NCF / ITBIS).
-- **Fleet management** — vehicles and maintenance history.
-- **Executive reports** — revenue, enrollment, and operational KPIs.
-- **Multi-branch (multi-sucursal)** — independent cash register and data scoping per physical location.
-- **Student self-service portal** — students log in to see their own progress, payments and schedule.
-- **Public landing page** — hero, about, gallery and social links, fully editable from Settings without touching code.
-- **WhatsApp notifications** — one-tap `wa.me` reminders for classes and payment due dates.
-- **Role-based access** (`admin`, `instructor`, `estudiante`) enforced on both UI and API.
-- **Audit log** of key actions across the system.
+| | |
+|---|---|
+| 🎓 **Student records** | Personal, contact, emergency-contact, academic and financial data; photo, documents, observations, progress evaluations, exam attempts and issued certificates — all in one profile. |
+| 📚 **Courses, instructors & schedules** | Course catalog with pricing, instructor assignment, and class scheduling. |
+| 💳 **Payments & invoicing** | Partial payments, multiple payment methods, auto-numbered printable invoices/receipts. |
+| ✅ **Attendance tracking** | Per student, per class. |
+| 💰 **Cash register (Caja)** | Daily opening/closing with cash reconciliation, unified income/expense movements, configurable categories. |
+| 🧾 **Operating expenses** | Fiscal fields for the Dominican Republic (RNC / NCF / ITBIS). |
+| 🚐 **Fleet management** | Vehicles and maintenance history. |
+| 📊 **Executive reports** | Revenue, enrollment, and operational KPIs. |
+| 🏢 **Multi-branch** | Independent cash register and data scoping per physical location. |
+| 👩‍🎓 **Student self-service portal** | Students log in to see their own progress, payments and schedule. |
+| 🌐 **Public landing page** | Hero, about, gallery and social links, fully editable from Settings — no code required. |
+| 📱 **WhatsApp notifications** | One-tap `wa.me` reminders for classes and payment due dates. |
+| 🔐 **Role-based access** | `admin`, `instructor`, `estudiante` — enforced on both UI and API. |
+| 🕵️ **Audit log** | Tracks key actions across the system. |
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center" width="50%"><img src="docs/screenshots/login.png" alt="Login"><br><sub><b>Login</b></sub></td>
+    <td align="center" width="50%"><img src="docs/screenshots/caja.png" alt="Cash register"><br><sub><b>Cash register (Caja)</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/vehiculos.png" alt="Fleet management"><br><sub><b>Fleet management</b></sub></td>
+    <td align="center"><img src="docs/screenshots/configuracion.png" alt="Settings"><br><sub><b>Settings</b></sub></td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2"><img src="docs/screenshots/notificaciones.png" alt="WhatsApp notifications"><br><sub><b>WhatsApp notifications</b></sub></td>
+  </tr>
+</table>
 
 ## Tech Stack
 
@@ -106,3 +153,11 @@ npm test
 ## License
 
 Proprietary — all rights reserved. See [LICENSE](LICENSE). Reselling, redistributing, or reusing this code (in whole or in part) without explicit written permission from the author is prohibited.
+
+<div align="center">
+
+<br>
+
+Built by [Luzmy555](https://github.com/Luzmy555)
+
+</div>
