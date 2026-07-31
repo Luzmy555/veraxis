@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🚗 Veraxis
+#  Veraxis
 
 ### Full-stack management system for driving schools
 
